@@ -11,6 +11,9 @@ int fps = 0;
 int frameCount = 0;
 int previousTime = 0;
 
+// REMOVIDO DAQUI: float anguloRoda = 0.0f; 
+// (Já está definido no outro arquivo e incluído via scene.h)
+
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -38,7 +41,7 @@ void display()
     frameCount++;
     int currentTime = glutGet(GLUT_ELAPSED_TIME);
 
-    if (currentTime - previousTime > 1000) // passou 1 segundo
+    if (currentTime - previousTime > 1000) 
     {
         fps = frameCount;
         frameCount = 0;
@@ -64,7 +67,6 @@ void reshape(int w, int h)
 
     glMatrixMode(GL_MODELVIEW);
 
-    // informa ao módulo de input onde é o centro da janela
     atualizaCentroJanela(w, h);
 }
 
@@ -78,10 +80,14 @@ void timer(int v)
     if (anguloEsfera >= 360.0f)
         anguloEsfera -= 360.0f;
 
-    atualizaMovimento();
+    // AQUI FUNCIONA PORQUE O scene.h DISSE QUE ELA EXISTE
+    anguloRoda += 5.0f; 
+    if (anguloRoda >= 360.0f)
+        anguloRoda -= 360.0f;
 
+    atualizaMovimento();
     glutPostRedisplay();
-    glutTimerFunc(16, timer, 0); // ~60 FPS
+    glutTimerFunc(16, timer, 0); 
 }
 
 int main(int argc, char **argv)
@@ -101,11 +107,10 @@ int main(int argc, char **argv)
     glutKeyboardUpFunc(keyboardUp);
     glutPassiveMotionFunc(mouseMotion);
 
-    glutSetCursor(GLUT_CURSOR_NONE); // esconde o cursor
+    glutSetCursor(GLUT_CURSOR_NONE); 
 
     glutTimerFunc(0, timer, 0);
 
-    // glutFullScreen();
     glutMainLoop();
     return 0;
 }

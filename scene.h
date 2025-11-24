@@ -1,6 +1,9 @@
 #ifndef SCENE_H
 #define SCENE_H
 
+//
+extern float anguloRoda;
+
 extern float anguloPiramide;
 extern float anguloEsfera;
 

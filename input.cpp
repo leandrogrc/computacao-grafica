@@ -118,7 +118,7 @@ void mouseMotion(int x, int y)
     int dx = x - centerX;
     int dy = y - centerY;
 
-    float sens = 0.1f; // sensibilidade do mouse
+    float sens = 0.005f; // sensibilidade do mouse
 
     yaw += dx * sens;   // horizontal
     pitch -= dy * sens; // vertical (invertido pra sensação de FPS)
