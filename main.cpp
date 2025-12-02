@@ -20,8 +20,10 @@ GLuint texTorre;
 GLuint texDegrau;
 GLuint texEsfera;
 GLuint texLava;
+GLuint texRhombus; // New texture for rhombus
 GLuint progEsfera;
 GLuint progLava;
+GLuint progRhombus; // New shader for rhombus
 
 void display()
 {
@@ -117,15 +119,17 @@ int main(int argc, char **argv)
     glEnable(GL_TEXTURE_2D);
 
     // carregando texturas
-    texChao = carregaTextura("assets/181.png");
-    texTorre = carregaTextura("assets/091.png");
-    texDegrau = carregaTextura("assets/190.png");
-    texEsfera = carregaTextura("assets/016.png");
-    texLava = carregaTextura("assets/179.png");
+    texChao = carregaTextura("assets/floor5_1.png");
+    texTorre = carregaTextura("assets/wall01_1.png");
+    texDegrau = carregaTextura("assets/step1.png");
+    texEsfera = carregaTextura("assets/rrock14.png");
+    texLava = carregaTextura("assets/lava1.png");
+    texRhombus = carregaTextura("assets/bfall1.png");
 
     // cria o shader
     progEsfera = criaShader("shaders/blood.vert", "shaders/blood.frag");
     progLava = criaShader("shaders/lava.vert", "shaders/lava.frag");
+    progRhombus = criaShader("shaders/rhombus.vert", "shaders/rhombus.frag");
 
     glClearColor(0.05f, 0.05f, 0.1f, 1.0f);
 

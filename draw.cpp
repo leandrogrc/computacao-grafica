@@ -12,60 +12,80 @@ extern GLuint texTorre;
 extern GLuint texDegrau;
 extern GLuint texEsfera;
 extern GLuint texLava;
+extern GLuint texRhombus; // New extern
 extern GLuint progEsfera;
 extern GLuint progLava;
+extern GLuint progRhombus; // New extern
+extern float tempoEsfera; // Need this for shader time
 
 static void desenhaLosango(float altura)
 {
     float h = altura / 2.0f;
     float s = altura / 3.0f;
 
-    float claro[3] = {0.3f, 1.0f, 0.3f};
-    float escuro[3] = {0.0f, 0.6f, 0.0f};
+    glUseProgram(progRhombus);
+    GLint locTex = glGetUniformLocation(progRhombus, "uTexture");
+    GLint locTime = glGetUniformLocation(progRhombus, "uTime");
+
+    glUniform1i(locTex, 0);
+    glUniform1f(locTime, tempoEsfera);
+
+    glBindTexture(GL_TEXTURE_2D, texRhombus);
+    glColor3f(1.0f, 1.0f, 1.0f); // White to let texture show
 
     glBegin(GL_TRIANGLES);
     // metade de cima
-    glColor3fv(claro);
-    glVertex3f(0.0f, h, 0.0f);
-    glVertex3f(-s, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, s);
+    // Front face
+    glNormal3f(0.0f, 0.5f, 1.0f);
+    glTexCoord2f(0.5f, 0.0f); glVertex3f(0.0f, h, 0.0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-s, 0.0f, 0.0f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.0f, 0.0f, s);
 
-    glColor3fv(escuro);
-    glVertex3f(0.0f, h, 0.0f);
-    glVertex3f(0.0f, 0.0f, s);
-    glVertex3f(s, 0.0f, 0.0f);
+    // Right face
+    glNormal3f(1.0f, 0.5f, 0.0f);
+    glTexCoord2f(0.5f, 0.0f); glVertex3f(0.0f, h, 0.0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(0.0f, 0.0f, s);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(s, 0.0f, 0.0f);
 
-    glColor3fv(claro);
-    glVertex3f(0.0f, h, 0.0f);
-    glVertex3f(s, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, -s);
+    // Back face
+    glNormal3f(0.0f, 0.5f, -1.0f);
+    glTexCoord2f(0.5f, 0.0f); glVertex3f(0.0f, h, 0.0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(s, 0.0f, 0.0f);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(0.0f, 0.0f, -s);
 
-    glColor3fv(escuro);
-    glVertex3f(0.0f, h, 0.0f);
-    glVertex3f(0.0f, 0.0f, -s);
-    glVertex3f(-s, 0.0f, 0.0f);
+    // Left face
+    glNormal3f(-1.0f, 0.5f, 0.0f);
+    glTexCoord2f(0.5f, 0.0f); glVertex3f(0.0f, h, 0.0f);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(0.0f, 0.0f, -s);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f(-s, 0.0f, 0.0f);
 
     // metade de baixo
-    glColor3fv(claro);
-    glVertex3f(0.0f, -h, 0.0f);
-    glVertex3f(0.0f, 0.0f, s);
-    glVertex3f(-s, 0.0f, 0.0f);
+    // Front face
+    glNormal3f(0.0f, -0.5f, 1.0f);
+    glTexCoord2f(0.5f, 1.0f); glVertex3f(0.0f, -h, 0.0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.0f, 0.0f, s);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-s, 0.0f, 0.0f);
 
-    glColor3fv(escuro);
-    glVertex3f(0.0f, -h, 0.0f);
-    glVertex3f(s, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, s);
+    // Right face
+    glNormal3f(1.0f, -0.5f, 0.0f);
+    glTexCoord2f(0.5f, 1.0f); glVertex3f(0.0f, -h, 0.0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(s, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, 0.0f, s);
 
-    glColor3fv(claro);
-    glVertex3f(0.0f, -h, 0.0f);
-    glVertex3f(0.0f, 0.0f, -s);
-    glVertex3f(s, 0.0f, 0.0f);
+    // Back face
+    glNormal3f(0.0f, -0.5f, -1.0f);
+    glTexCoord2f(0.5f, 1.0f); glVertex3f(0.0f, -h, 0.0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(0.0f, 0.0f, -s);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(s, 0.0f, 0.0f);
 
-    glColor3fv(escuro);
-    glVertex3f(0.0f, -h, 0.0f);
-    glVertex3f(-s, 0.0f, 0.0f);
-    glVertex3f(0.0f, 0.0f, -s);
+    // Left face
+    glNormal3f(-1.0f, -0.5f, 0.0f);
+    glTexCoord2f(0.5f, 1.0f); glVertex3f(0.0f, -h, 0.0f);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f(-s, 0.0f, 0.0f);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, 0.0f, -s);
     glEnd();
+
+    glUseProgram(0);
 }
 
 void desenhaChao()
