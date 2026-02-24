@@ -11,6 +11,10 @@ struct PlayerState
 
     int currentAmmo = 12;
     int reserveAmmo = 25;
+    int cardsCollected = 0;
+
+    float berserkTimer = 0.0f;
+    float hasteTimer = 0.0f;
 };
 
 struct WeaponAnim
@@ -34,14 +38,26 @@ struct RenderAssets
 
     GLuint progSangue = 0;
     GLuint progLava = 0;
+
+
+    GLuint texWallMarket = 0;
+    GLuint texWallHouse  = 0;
+    GLuint texWallShop   = 0;
+    GLuint texWallOffice = 0;
+    GLuint texHudTopBG   = 0;
+    GLuint texCard       = 0;
+    GLuint texGun2Default = 0;
 };
 
 struct GameContext
 {
     GameState state = GameState::MENU_INICIAL;
     PlayerState player;
-    WeaponAnim weapon;
+    WeaponAnim weapons[2];
+    bool hasWeapon[2] = {true, false}; // Começa com a arma 1 (Shotgun)
+    int activeWeaponIdx = 0;
     float time = 0.0f;
+    int currentLevel = 1;
 
     RenderAssets r;
 };

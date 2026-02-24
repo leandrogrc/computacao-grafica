@@ -6,7 +6,8 @@
 #include "input/keystate.h"
 #include "core/window.h"
 #include "graphics/menu.h"
-#include "core/game.h" // Adicione isso no topo
+#include "core/game.h"
+#include "core/player.h"
 
 void keyboard(unsigned char key, int, int)
 {
@@ -30,9 +31,31 @@ void keyboard(unsigned char key, int, int)
     if (state == GameState::GAME_OVER)
     {
         if (key == 13)
-        { // ENTER reinicia
+        {
             gameReset();
-            gameSetState(GameState::JOGANDO);
+            gameLoadLevel(1);
+        }
+        return;
+    }
+
+    // --- LEVEL CLEAR ---
+    if (state == GameState::LEVEL_CLEAR)
+    {
+        if (key == 13)
+        {
+            auto& ctx = gameContext();
+            gameLoadLevel(ctx.currentLevel + 1);
+        }
+        return;
+    }
+
+    // --- VITORIA ---
+    if (state == GameState::VITORIA)
+    {
+        if (key == 13)
+        {
+            gameReset();
+            gameLoadLevel(1);
         }
         return;
     }
@@ -54,9 +77,12 @@ void keyboard(unsigned char key, int, int)
         {
             gameSetState(GameState::PAUSADO);
             // Para o movimento ao pausar
-            keyW = keyA = keyS = keyD = false;
+            keyW = keyA = keyS = keyD = keyShift = false;
             return;
         }
+
+        // Atualiza estado do Shift
+        keyShift = (glutGetModifiers() & GLUT_ACTIVE_SHIFT);
 
         // Controles de Jogo (WASD + R)
         switch (key)
@@ -81,12 +107,24 @@ void keyboard(unsigned char key, int, int)
         case 'R':
             playerTryReload();
             break;
+        case 'g':
+        case 'G':
+            keyG = true;
+            break;
+        case '1':
+            playerSwitchWeapon(0);
+            break;
+        case '2':
+            playerSwitchWeapon(1);
+            break;
         }
     }
 }
 
 void keyboardUp(unsigned char key, int, int)
 {
+    keyShift = (glutGetModifiers() & GLUT_ACTIVE_SHIFT);
+
     switch (key)
     {
     case 'w':
@@ -105,6 +143,10 @@ void keyboardUp(unsigned char key, int, int)
     case 'D':
         keyD = false;
         break;
+    case 'g':
+    case 'G':
+        keyG = false;
+        break;
     }
 
     if ((key == 13 || key == '\r') && (glutGetModifiers() & GLUT_ACTIVE_ALT))
@@ -114,6 +156,8 @@ void keyboardUp(unsigned char key, int, int)
 }
 void mouseClick(int button, int state, int x, int y)
 {
+    keyShift = (glutGetModifiers() & GLUT_ACTIVE_SHIFT);
+
     // Se apertou o botão esquerdo
     if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
     {

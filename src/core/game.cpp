@@ -62,6 +62,47 @@ void gameTogglePause()
         g.state = GameState::JOGANDO;
 }
 
+// --- Carrega uma fase pelo número (1, 2 ou 3) ---
+bool gameLoadLevel(int levelNum)
+{
+    static const char* mapPaths[] = {
+        nullptr,
+        "maps/map1.txt",
+        "maps/map2.txt",
+        "maps/map3.txt"
+    };
+    if (levelNum < 1 || levelNum > 3) return false;
+
+    g.currentLevel = levelNum;
+    
+    // Para e fecha o sistema de áudio atual de forma completa
+    audioShutdown(gAudioSys);
+
+    if (!loadLevel(gLevel, mapPaths[levelNum], GameConfig::TILE_SIZE))
+        return false;
+
+    applySpawn(gLevel, camX, camZ);
+    camY = GameConfig::PLAYER_EYE_Y;
+
+    audioInit(gAudioSys, gLevel);
+
+    // Reseta munição e arma mas mantém vida
+    g.player.currentAmmo = MAX_MAGAZINE;
+    g.player.reserveAmmo = 25;
+    g.player.cardsCollected = 0; // Novo: Reseta objetivo
+    g.player.berserkTimer = 0.0f;
+    g.player.hasteTimer = 0.0f;
+    gLevel.projectiles.clear();
+    for (int i=0; i<2; ++i) g.weapons[i] = WeaponAnim{};
+    g.activeWeaponIdx = 0;
+    g.hasWeapon[0] = true; 
+    g.hasWeapon[1] = false;
+    g.time = 0.0f;
+
+    g.state = GameState::JOGANDO;
+    return true;
+}
+
 // --- INIT ---
 bool gameInit(const char *mapPath)
 {
@@ -88,6 +129,7 @@ bool gameInit(const char *mapPath)
     g.r.texMenuBG = gAssets.texMenuBG;
 
     gHudTex.texHudFundo = gAssets.texHudFundo;
+    gHudTex.texHudTopBG = gAssets.texHudTopBG;
     gHudTex.texGunHUD = gAssets.texGunHUD;
 
     gHudTex.texGunDefault = gAssets.texGunDefault;
@@ -95,7 +137,10 @@ bool gameInit(const char *mapPath)
     gHudTex.texGunFire2 = gAssets.texGunFire2;
     gHudTex.texGunReload1 = gAssets.texGunReload1;
     gHudTex.texGunReload2 = gAssets.texGunReload2;
-
+    gHudTex.texGunSprint = gAssets.texGunSprint;
+    gHudTex.texGun2Default = gAssets.texGun2Default;
+    gHudTex.texGun2Fire1 = gAssets.texGun2Fire1;
+    gHudTex.texGun2Fire2 = gAssets.texGun2Fire2;
     gHudTex.texDamage = gAssets.texDamage;
     gHudTex.texHealthOverlay = gAssets.texHealthOverlay;
 
@@ -112,6 +157,15 @@ bool gameInit(const char *mapPath)
     g.r.progSangue = gAssets.progSangue;
     g.r.progLava = gAssets.progLava;
 
+
+    g.r.texWallMarket = gAssets.texWallMarket;
+    g.r.texWallHouse  = gAssets.texWallHouse;
+    g.r.texWallShop   = gAssets.texWallShop;
+    g.r.texWallOffice = gAssets.texWallOffice;
+    g.r.texHudTopBG   = gAssets.texHudTopBG;
+    g.r.texCard       = gAssets.texCard;
+    g.r.texGun2Default = gAssets.texGun2Default;
+
     if (!loadLevel(gLevel, mapPath, GameConfig::TILE_SIZE))
         return false;
 
@@ -126,10 +180,14 @@ bool gameInit(const char *mapPath)
     // Audio init + ambient + enemy sources
     audioInit(gAudioSys, gLevel);
 
+    g.currentLevel = 1;
     g.state = GameState::MENU_INICIAL;
     g.time = 0.0f;
     g.player = PlayerState{};
-    g.weapon = WeaponAnim{};
+    for (int i=0; i<2; ++i) g.weapons[i] = WeaponAnim{};
+    g.hasWeapon[0] = true;
+    g.hasWeapon[1] = false;
+    g.activeWeaponIdx = 0;
 
     return true;
 }
@@ -144,8 +202,15 @@ void gameReset()
     g.player.damageAlpha = 0.0f;
     g.player.healthAlpha = 0.0f;
 
-    g.weapon.state = WeaponState::W_IDLE;
-    g.weapon.timer = 0.0f;
+    for (int i = 0; i < 2; ++i)
+    {
+        g.weapons[i].state = WeaponState::W_IDLE;
+        g.weapons[i].timer = 0.0f;
+    }
+    g.hasWeapon[0] = true;
+    g.hasWeapon[1] = false;
+    g.activeWeaponIdx = 0;
+
     // Respawna o jogador
     applySpawn(gLevel, camX, camZ);
 }
@@ -154,11 +219,9 @@ void gameUpdate(float dt)
 {
     g.time += dt;
 
-    // 1. SE NÃO ESTIVER JOGANDO, NÃO RODA A LÓGICA DO JOGO
+    // SE NÃO ESTIVER JOGANDO, NÃO RODA A LÓGICA DO JOGO
     if (g.state != GameState::JOGANDO)
-    {
         return;
-    }
 
     atualizaMovimento();
 
@@ -189,13 +252,30 @@ void gameUpdate(float dt)
     }
 
     updateEntities(dt);
+    if (keyG) playerTryGrabWeapon();
     updateWeaponAnim(dt);
 
-    // 3. CHECAGEM DE GAME OVER
+    // CHECAGEM DE GAME OVER
     if (g.player.health <= 0)
     {
         g.state = GameState::GAME_OVER;
         g.player.damageAlpha = 1.0f;
+        return;
+    }
+
+    // CHECAGEM DE SAÍDA DE FASE
+    if (gLevel.hasExit)
+    {
+        float dx = camX - gLevel.exitX;
+        float dz = camZ - gLevel.exitZ;
+        // Só permite sair se coletou as 3 cartas
+        if (dx*dx + dz*dz < 2.5f && g.player.cardsCollected >= 3)
+        {
+            if (g.currentLevel < 3)
+                g.state = GameState::LEVEL_CLEAR;
+            else
+                g.state = GameState::VITORIA;
+        }
     }
 }
 
@@ -205,10 +285,27 @@ void drawWorld3D()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    // LIGAR O 3D
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
+
+    // Iluminação por fase
+    applyLevelLighting(g.currentLevel, g.time);
+    if (g.currentLevel == 1)
+        setSunDirectionEachFrame();
+
+    // ---- Troca de texturas por fase ----
+    {
+        int ni = g.currentLevel - 1; // 0,1,2
+        if (ni >= 0 && ni < 3 && gAssets.texChaoNivel[ni])
+        {
+            g.r.texChao          = gAssets.texChaoNivel[ni];
+            g.r.texParede        = gAssets.texParedeNivel[ni];
+            g.r.texChaoInterno   = gAssets.texChaoInternoNivel[ni];
+            g.r.texParedeInterna = gAssets.texParedeInterNivel[ni];
+            g.r.texSkydome       = gAssets.texSkydomeNivel[ni];
+        }
+    }
 
     // Configuração da Câmera
     float radYaw = yaw * 3.14159265f / 180.0f;
@@ -216,68 +313,65 @@ void drawWorld3D()
     float dirX = cosf(radPitch) * sinf(radYaw);
     float dirY = sinf(radPitch);
     float dirZ = -cosf(radPitch) * cosf(radYaw);
+
     gluLookAt(camX, camY, camZ, camX + dirX, camY + dirY, camZ + dirZ, 0.0f, 1.0f, 0.0f);
 
-    // Desenha o cenário
-    setSunDirectionEachFrame();
     drawSkydome(camX, camY, camZ, g.r);
     drawLevel(gLevel.map, camX, camZ, dirX, dirZ, g.r, g.time);
     drawEntities(gLevel.enemies, gLevel.items, camX, camZ, dirX, dirZ, g.r);
 }
 
-// FUNÇÃO PRINCIPAL DE DESENHO (REFATORADA: usa menuRender / pauseMenuRender / hudRenderAll)
 void gameRender()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // Monta o estado do HUD a partir das variáveis globais do jogo
     HudState hs;
     hs.playerHealth = g.player.health;
     hs.currentAmmo = g.player.currentAmmo;
     hs.reserveAmmo = g.player.reserveAmmo;
     hs.damageAlpha = g.player.damageAlpha;
     hs.healthAlpha = g.player.healthAlpha;
-    hs.weaponState = g.weapon.state;
+    hs.cardsCollected = g.player.cardsCollected;
+    hs.berserkTimer = g.player.berserkTimer;
+    hs.hasteTimer = g.player.hasteTimer;
+    hs.weaponState = g.weapons[g.activeWeaponIdx].state;
+    hs.activeWeaponIdx = g.activeWeaponIdx;
+    hs.px = camX;
+    hs.pz = camZ;
+    hs.pyaw = yaw;
+    hs.isSprinting = keyShift && (keyW || keyA || keyS || keyD);
 
-    // --- ESTADO: MENU INICIAL ---
     if (g.state == GameState::MENU_INICIAL)
     {
-        // menuRender já cuida do fogo (update + render)
         menuRender(janelaW, janelaH, g.time, "", "Pressione ENTER para Jogar", g.r);
     }
-    // --- ESTADO: GAME OVER ---
     else if (g.state == GameState::GAME_OVER)
     {
-        // Fundo 3D congelado
         drawWorld3D();
-
-        // OVERLAY DO MELT por cima do jogo
-        // menuMeltRenderOverlay(janelaW, janelaH, g.time);
-
-        // Tela do game over por cima (com fogo)
         menuRender(janelaW, janelaH, g.time, "GAME OVER", "Pressione ENTER para Reiniciar", g.r);
     }
-    // --- ESTADO: PAUSADO ---
+    else if (g.state == GameState::LEVEL_CLEAR)
+    {
+        drawWorld3D();
+        char msg[64];
+        std::snprintf(msg, sizeof(msg), "FASE %d COMPLETA!", g.currentLevel);
+        menuRender(janelaW, janelaH, g.time, msg, "Pressione ENTER para Continuar", g.r);
+    }
+    else if (g.state == GameState::VITORIA)
+    {
+        drawWorld3D();
+        menuRender(janelaW, janelaH, g.time, "VITORIA!", "Pressione ENTER para Jogar Novamente", g.r);
+    }
     else if (g.state == GameState::PAUSADO)
     {
-        // 1) Mundo 3D congelado
         drawWorld3D();
-
-        // 2) HUD normal (arma + barra + mira + overlays)
-        hudRenderAll(janelaW, janelaH, gHudTex, hs, true, true, true);
-
-        // 3) Menu escuro por cima
+        hudRenderAll(janelaW, janelaH, gHudTex, hs, gLevel.map, gLevel.enemies, gLevel.items, true, true, true);
         pauseMenuRender(janelaW, janelaH, g.time);
     }
-    // --- ESTADO: JOGANDO ---
     else // JOGANDO
     {
-        // 1) Mundo 3D
         drawWorld3D();
-
-        // 2) HUD completo
-        hudRenderAll(janelaW, janelaH, gHudTex, hs, true, true, true);
-
+        hudRenderAll(janelaW, janelaH, gHudTex, hs, gLevel.map, gLevel.enemies, gLevel.items, true, true, true);
         menuMeltRenderOverlay(janelaW, janelaH, g.time);
     }
 
