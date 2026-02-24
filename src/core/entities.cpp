@@ -20,9 +20,26 @@ bool isWalkable(float x, float z)
     if (tx < 0 || tx >= (int)data[tz].size()) return false;
 
     char c = data[tz][tx];
-    if (c == '1' || c == '2') return false;
-
+    if (c == '1' || c == '2' || c == 'M' || c == 'H' || c == 'S' || c == 'O') return false;
+    // Entidades (h, a, k, j, t, m, g, E, 9) sao chao caminhavel
     return true;
+}
+
+static void spawnEnemyProjectile(float x, float z, float dx, float dz)
+{
+    float len = std::sqrt(dx*dx + dz*dz);
+    if (len < 0.001f) return;
+    
+    Projectile p;
+    p.x = x;
+    p.z = z;
+    p.dx = dx / len;
+    p.dz = dz / len;
+    p.speed = 8.0f;
+    p.active = true;
+    p.fromEnemy = true;
+    
+    gameLevel().projectiles.push_back(p);
 }
 
 void updateEntities(float dt)
@@ -57,6 +74,7 @@ void updateEntities(float dt)
         {
         case STATE_IDLE:
             if (dist < ENEMY_VIEW_DIST) en.state = STATE_CHASE;
+            en.attackCooldown = 0.0f;
             break;
 
         case STATE_CHASE:
@@ -81,6 +99,17 @@ void updateEntities(float dt)
 
                 float nextZ = en.z + dirZ * moveStep;
                 if (isWalkable(en.x, nextZ)) en.z = nextZ;
+
+                // NOVO: Chance de atirar projétil se estiver longe
+                if (dist > ENEMY_ATTACK_DIST * 2.0f && dist < ENEMY_VIEW_DIST)
+                {
+                    en.attackCooldown -= dt;
+                    if (en.attackCooldown <= 0.0f)
+                    {
+                        spawnEnemyProjectile(en.x, en.z, dx, dz);
+                        en.attackCooldown = 2.0f + (std::rand() % 20) * 0.1f; // 2~4 seg
+                    }
+                }
             }
             break;
 
@@ -135,6 +164,55 @@ void updateEntities(float dt)
                 item.respawnTimer = 999999.0f;
                 g.player.reserveAmmo = 20;
             }
+            else if (item.type == ITEM_CARD)
+            {
+                item.respawnTimer = 1e9f; // Nao respawna
+                g.player.cardsCollected++;
+            }
+            else if (item.type == ITEM_BERSERK)
+            {
+                item.respawnTimer = 30.0f;
+                g.player.berserkTimer = 10.0f;
+            }
+            else if (item.type == ITEM_HASTE)
+            {
+                item.respawnTimer = 30.0f;
+                g.player.hasteTimer = 10.0f;
+            }
         }
     }
+
+    // 3. Atualizar Projéteis
+    for (auto& p : lvl.projectiles)
+    {
+        if (!p.active) continue;
+
+        p.x += p.dx * p.speed * dt;
+        p.z += p.dz * p.speed * dt;
+
+        // Colisão com parede
+        if (!isWalkable(p.x, p.z))
+        {
+            p.active = false;
+            continue;
+        }
+
+        // Colisão com player
+        if (p.fromEnemy)
+        {
+            float pdx = p.x - camX;
+            float pdz = p.z - camZ;
+            if (pdx*pdx + pdz*pdz < 0.5f)
+            {
+                p.active = false;
+                g.player.health -= 15;
+                g.player.damageAlpha = 1.0f;
+                audioPlayHurt(audio);
+            }
+        }
+    }
+
+    // 4. Decay de Timers
+    if (g.player.berserkTimer > 0.0f) g.player.berserkTimer -= dt;
+    if (g.player.hasteTimer > 0.0f) g.player.hasteTimer -= dt;
 }

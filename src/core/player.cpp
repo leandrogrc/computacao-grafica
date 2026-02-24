@@ -2,6 +2,7 @@
 #include "core/game.h"
 #include "core/camera.h"
 #include "audio/audio_system.h"
+#include "input/keystate.h"
 #include <cmath>
 
 constexpr int MAX_MAGAZINE = 12;
@@ -56,16 +57,17 @@ void playerTryReload()
 {
     auto &g = gameContext();
     auto &audio = gameAudio();
+    auto &weapon = g.weapons[g.activeWeaponIdx];
 
-    if (g.weapon.state != WeaponState::W_IDLE)
+    if (weapon.state != WeaponState::W_IDLE)
         return;
     if (g.player.currentAmmo >= MAX_MAGAZINE)
         return;
     if (g.player.reserveAmmo <= 0)
         return;
 
-    g.weapon.state = WeaponState::W_RELOAD_1;
-    g.weapon.timer = 0.50f;
+    weapon.state = WeaponState::W_RELOAD_1;
+    weapon.timer = 0.50f;
 
     audioPlayReload(audio);
 }
@@ -75,10 +77,13 @@ void playerTryAttack()
     auto &g = gameContext();
     auto &lvl = gameLevel();
     auto &audio = gameAudio();
+    auto &weapon = g.weapons[g.activeWeaponIdx];
 
-    if (g.weapon.state != WeaponState::W_IDLE)
+    if (weapon.state != WeaponState::W_IDLE)
         return;
     if (g.player.currentAmmo <= 0)
+        return;
+    if (keyShift)
         return;
 
     g.player.currentAmmo--;
@@ -86,8 +91,11 @@ void playerTryAttack()
     audioOnPlayerShot(audio);
     audioPlayShot(audio);
 
-    g.weapon.state = WeaponState::W_FIRE_1;
-    g.weapon.timer = 0.08f;
+    weapon.state = WeaponState::W_FIRE_1;
+    if (g.activeWeaponIdx == 0)
+        weapon.timer = 0.08f;
+    else
+        weapon.timer = 0.05f; // Arma 2 é mais rápida
 
     // 1) raio sai do centro da visão do player (yaw)
     float radYaw = yaw * 3.14159f / 180.0f;
@@ -127,7 +135,10 @@ void playerTryAttack()
     {
         auto &en = lvl.enemies[bestIdx];
 
-        en.hp -= 30;
+        int damage = 30;
+        if (g.player.berserkTimer > 0.0f) damage *= 2;
+
+        en.hp -= damage;
         en.hurtTimer = 0.5f;
 
         if (en.hp <= 0)
@@ -136,11 +147,31 @@ void playerTryAttack()
             en.respawnTimer = 15.0f;
 
             Item drop;
-            drop.type = ITEM_AMMO;
             drop.x = en.x;
             drop.z = en.z;
             drop.active = true;
             drop.respawnTimer = 0.0f;
+
+            // Logica de drop re-balanceada:
+            // Prioridade: Municao (55%) > Vida (20%) > Arma (15%, 1x) > Cartao (10%, se precisar)
+            int chance = std::rand() % 100;
+
+            if (!g.hasWeapon[1] && chance < 10) // 10% chance unica de dar a arma
+            {
+                drop.type = ITEM_WEAPON2;
+            }
+            else if (g.player.cardsCollected < 3 && chance >= 85) // 15% para cartao
+            {
+                drop.type = ITEM_CARD;
+            }
+            else if (chance >= 75) // 10% para vida
+            {
+                drop.type = ITEM_HEALTH;
+            }
+            else // 65%+ para municao (default)
+            {
+                drop.type = ITEM_AMMO;
+            }
 
             lvl.items.push_back(drop);
         }
@@ -152,58 +183,106 @@ void updateWeaponAnim(float dt)
     auto &g = gameContext();
     auto &audio = gameAudio();
 
-    const float TIME_FRAME_2 = 0.12f;
-    const float RELOAD_T2 = 0.85f;
-    const float RELOAD_T3 = 0.25f;
+    for (int i = 0; i < 2; ++i)
+    {
+        auto &weapon = g.weapons[i];
+        if (weapon.state == WeaponState::W_IDLE)
+            continue;
 
-    if (g.weapon.state == WeaponState::W_IDLE)
-        return;
+        weapon.timer -= dt;
+        if (weapon.timer > 0.0f)
+            continue;
 
-    g.weapon.timer -= dt;
-    if (g.weapon.timer > 0.0f)
-        return;
+        if (weapon.state == WeaponState::W_FIRE_1)
+        {
+            weapon.state = WeaponState::W_FIRE_2;
+            weapon.timer = (i == 0) ? 0.12f : 0.08f;
+        }
+        else if (weapon.state == WeaponState::W_FIRE_2)
+        {
+            if (i == 0) // Só a Shotgun (arma 0) faz o pump
+            {
+                weapon.state = WeaponState::W_PUMP;
+                weapon.timer = AudioTuning::PUMP_TIME;
+                audioPlayPumpClick(audio);
+            }
+            else
+            {
+                weapon.state = WeaponState::W_IDLE;
+                weapon.timer = 0.0f;
+            }
+        }
+        else if (weapon.state == WeaponState::W_PUMP)
+        {
+            weapon.state = WeaponState::W_IDLE;
+            weapon.timer = 0.0f;
+        }
+        else if (weapon.state == WeaponState::W_RELOAD_1)
+        {
+            weapon.state = WeaponState::W_RELOAD_2;
+            weapon.timer = 0.85f;
+        }
+        else if (weapon.state == WeaponState::W_RELOAD_2)
+        {
+            weapon.state = WeaponState::W_RELOAD_3;
+            weapon.timer = 0.25f;
+        }
+        else if (weapon.state == WeaponState::W_RELOAD_3)
+        {
+            weapon.state = WeaponState::W_IDLE;
+            weapon.timer = 0.0f;
 
-    if (g.weapon.state == WeaponState::W_FIRE_1)
-    {
-        g.weapon.state = WeaponState::W_FIRE_2;
-        g.weapon.timer = TIME_FRAME_2;
-    }
-    else if (g.weapon.state == WeaponState::W_FIRE_2)
-    {
-        g.weapon.state = WeaponState::W_PUMP;
-        g.weapon.timer = AudioTuning::PUMP_TIME;
-        audioPlayPumpClick(audio);
-    }
-    else if (g.weapon.state == WeaponState::W_RETURN)
-    {
-        g.weapon.state = WeaponState::W_IDLE;
-        g.weapon.timer = 0.0f;
-    }
-    else if (g.weapon.state == WeaponState::W_PUMP)
-    {
-        g.weapon.state = WeaponState::W_IDLE;
-        g.weapon.timer = 0.0f;
-    }
-    else if (g.weapon.state == WeaponState::W_RELOAD_1)
-    {
-        g.weapon.state = WeaponState::W_RELOAD_2;
-        g.weapon.timer = RELOAD_T2;
-    }
-    else if (g.weapon.state == WeaponState::W_RELOAD_2)
-    {
-        g.weapon.state = WeaponState::W_RELOAD_3;
-        g.weapon.timer = RELOAD_T3;
-    }
-    else if (g.weapon.state == WeaponState::W_RELOAD_3)
-    {
-        g.weapon.state = WeaponState::W_IDLE;
-        g.weapon.timer = 0.0f;
+            int needed = MAX_MAGAZINE - g.player.currentAmmo;
+            if (needed > g.player.reserveAmmo)
+                needed = g.player.reserveAmmo;
 
-        int needed = MAX_MAGAZINE - g.player.currentAmmo;
-        if (needed > g.player.reserveAmmo)
-            needed = g.player.reserveAmmo;
+            g.player.currentAmmo += needed;
+            g.player.reserveAmmo -= needed;
+        }
+        else if (weapon.state == WeaponState::W_RETURN)
+        {
+            weapon.state = WeaponState::W_IDLE;
+            weapon.timer = 0.0f;
+        }
+    }
+}
 
-        g.player.currentAmmo += needed;
-        g.player.reserveAmmo -= needed;
+void playerSwitchWeapon(int idx)
+{
+    auto &g = gameContext();
+    if (idx < 0 || idx >= 2) return;
+    if (!g.hasWeapon[idx]) return;
+    if (g.activeWeaponIdx == idx) return;
+
+    // Se estiver no meio de uma animação, talvez devesse bloquear? 
+    // Por enquanto troca direto se idle
+    if (g.weapons[g.activeWeaponIdx].state != WeaponState::W_IDLE) return;
+
+    g.activeWeaponIdx = idx;
+}
+
+void playerTryGrabWeapon()
+{
+    auto &g = gameContext();
+    auto &lvl = gameLevel();
+
+    float grabDist = 1.5f;
+
+    for (auto &it : lvl.items)
+    {
+        if (!it.active || it.type != ITEM_WEAPON2) continue;
+
+        float dx = it.x - camX;
+        float dz = it.z - camZ;
+        float dist = std::sqrt(dx * dx + dz * dz);
+
+        if (dist <= grabDist)
+        {
+            it.active = false;
+            g.hasWeapon[1] = true;
+            g.activeWeaponIdx = 1; // Troca automaticamente ao pegar
+            std::printf("Arma secundaria obtida!\n");
+            return;
+        }
     }
 }

@@ -1,9 +1,10 @@
 #include <GL/glew.h>
 #include <GL/glut.h>
 #include <cmath>
-#include "core/game_state.h"
 #include "graphics/drawlevel.h"
+#include "core/game.h"
 #include "level/levelmetrics.h"
+#include "core/config.h"
 #include "utils/utils.h"
 #include <cstdio>
 
@@ -12,9 +13,9 @@
 // =====================
 
 // Config do grid
-static const float TILE = 4.0f;      // tamanho do tile no mundo (ajuste)
-static const float CEILING_H = 4.0f; // altura do teto
-static const float WALL_H = 4.0f;    // altura da parede
+static const float TILE = GameConfig::TILE_SIZE;
+static const float CEILING_H = GameConfig::CEILING_HEIGHT;
+static const float WALL_H = GameConfig::WALL_HEIGHT;
 static const float EPS_Y = 0.001f;   // evita z-fighting
 
 static const GLfloat kAmbientOutdoor[] = {0.45f, 0.30f, 0.25f, 1.0f}; // quente (seu atual)
@@ -204,7 +205,7 @@ static void desenhaParedePorFace(float x, float z, GLuint texParedeX, int f)
     glBindTexture(GL_TEXTURE_2D, texParedeX);
 
     float tilesX = 1.0f;
-    float tilesY = 2.0f;
+    float tilesY = WALL_H * 0.5f; // Mantém proporção (1 repeat a cada 2 unidades)
 
     glBegin(GL_QUADS);
 
@@ -387,9 +388,9 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
 
             char c = data[z][x];
 
-            bool isEntity = (c == 'J' || c == 'T' || c == 'M' || c == 'K' ||
-                             c == 'G' || c == 'H' || c == 'A' || c == 'E' ||
-                             c == 'F' || c == 'I');
+            bool isEntity = (c == 'J' || c == 'T' || c == 'G' || c == 'F' || c == 'I' ||
+                             c == 'j' || c == 't' || c == 'm' || c == 'g' ||
+                             c == 'h' || c == 'a' || c == 'k' || c == 'w' || c == 'W');
 
             if (isEntity)
             {
@@ -428,6 +429,22 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
             {
                 desenhaParedeCuboCompleto(wx, wz, r.texParede);
             }
+            else if (c == 'M')
+            {
+                desenhaParedeCuboCompleto(wx, wz, r.texWallMarket);
+            }
+            else if (c == 'H')
+            {
+                desenhaParedeCuboCompleto(wx, wz, r.texWallHouse);
+            }
+            else if (c == 'S')
+            {
+                desenhaParedeCuboCompleto(wx, wz, r.texWallShop);
+            }
+            else if (c == 'O')
+            {
+                desenhaParedeCuboCompleto(wx, wz, r.texWallOffice);
+            }
             else if (c == '2')
             {
                 char vizFrente = getTileAt(map, x, z + 1);
@@ -447,6 +464,87 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
             else if (c == 'B')
             {
                 desenhaTileSangue(wx, wz, r, time);
+            }
+            else if (c == 'E')
+            {
+                // --- PORTAL DE SAÍDA ---
+                float pulse  = 0.5f + 0.5f * std::sin(time * 3.0f);
+                float pulse2 = 0.5f + 0.5f * std::sin(time * 3.0f + 1.57f);
+                float half   = TILE * 0.5f;
+
+                glUseProgram(0);
+                glDisable(GL_LIGHTING);
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+                // 1) Piso brilhante pulsante (verde → amarelo)
+                glColor4f(0.2f + 0.4f * pulse2, 0.9f, 0.2f, 1.0f);
+                glDisable(GL_TEXTURE_2D);
+                glBegin(GL_QUADS);
+                glNormal3f(0, 1, 0);
+                glVertex3f(wx - half, EPS_Y, wz + half);
+                glVertex3f(wx + half, EPS_Y, wz + half);
+                glVertex3f(wx + half, EPS_Y, wz - half);
+                glVertex3f(wx - half, EPS_Y, wz - half);
+                glEnd();
+
+                // 2) Cruz de vigas verticais de luz (4 pilares translúcidos)
+                float beamH  = WALL_H * 1.1f;
+                float beamW  = 0.18f;
+                float alpha  = 0.35f + 0.25f * pulse;
+
+                // Ângulo de rotação lento para os pilares
+                float rot = time * 45.0f; // graus/s
+                float cosR = std::cos(rot * 3.14159f / 180.0f);
+                float sinR = std::sin(rot * 3.14159f / 180.0f);
+
+                float offsets[4][2] = {
+                    { half * 0.55f,  0.0f},
+                    {-half * 0.55f,  0.0f},
+                    { 0.0f,  half * 0.55f},
+                    { 0.0f, -half * 0.55f}
+                };
+
+                for (int i = 0; i < 4; i++)
+                {
+                    float ox = offsets[i][0] * cosR - offsets[i][1] * sinR;
+                    float oz = offsets[i][0] * sinR + offsets[i][1] * cosR;
+                    float bx = wx + ox;
+                    float bz = wz + oz;
+
+                    glColor4f(0.3f, 1.0f, 0.3f, alpha);
+                    glBegin(GL_QUADS);
+                    glVertex3f(bx - beamW, 0.0f,   bz);
+                    glVertex3f(bx + beamW, 0.0f,   bz);
+                    glVertex3f(bx + beamW, beamH,  bz);
+                    glVertex3f(bx - beamW, beamH,  bz);
+                    glEnd();
+
+                    glBegin(GL_QUADS);
+                    glVertex3f(bx, 0.0f,   bz - beamW);
+                    glVertex3f(bx, 0.0f,   bz + beamW);
+                    glVertex3f(bx, beamH,  bz + beamW);
+                    glVertex3f(bx, beamH,  bz - beamW);
+                    glEnd();
+                }
+
+                // 3) Halo no chão (anel translúcido)
+                int   segs    = 24;
+                float ringR   = half * 0.75f;
+                float ringAlpha = 0.5f + 0.3f * pulse;
+                glColor4f(0.5f, 1.0f, 0.2f, ringAlpha);
+                glLineWidth(3.0f);
+                glBegin(GL_LINE_LOOP);
+                for (int i = 0; i < segs; i++)
+                {
+                    float ang = i * 2.0f * 3.14159f / segs + time;
+                    glVertex3f(wx + std::cos(ang) * ringR, EPS_Y * 2, wz + std::sin(ang) * ringR);
+                }
+                glEnd();
+
+                glEnable(GL_TEXTURE_2D);
+                glDisable(GL_BLEND);
+                glEnable(GL_LIGHTING);
             }
         }
     }
@@ -493,11 +591,51 @@ static void drawSprite(float x, float z, float w, float h, GLuint tex, float cam
     glDisable(GL_BLEND);
 }
 
+static void drawProjectiles(const std::vector<Projectile>& projectiles, float camX, float camZ, float time)
+{
+    glDisable(GL_LIGHTING);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE); // Additive blending for glow
+    glDisable(GL_TEXTURE_2D);
+
+    for (const auto& p : projectiles)
+    {
+        if (!p.active) continue;
+
+        glPushMatrix();
+        glTranslatef(p.x, 1.2f, p.z); // Altura do peito
+
+        float pulse = 0.5f + 0.5f * std::sin(time * 10.0f);
+        glColor4f(1.0f, 0.2f + 0.5f*pulse, 0.1f, 0.8f);
+
+        // Billboard para garantir visibilidade de qualquer angulo
+        float ddx = camX - p.x;
+        float ddz = camZ - p.z;
+        float angle = std::atan2(ddx, ddz) * 180.0f / 3.14159f;
+        glRotatef(angle, 0.0f, 1.0f, 0.0f);
+
+        float size = 0.18f;
+        glBegin(GL_QUADS);
+        // Quad principal billboarded
+        glVertex3f(-size, -size, 0); glVertex3f(size, -size, 0);
+        glVertex3f(size, size, 0); glVertex3f(-size, size, 0);
+        // Cruzamento para volume
+        glVertex3f(0, -size, -size); glVertex3f(0, -size, size);
+        glVertex3f(0, size, size); glVertex3f(0, size, -size);
+        glEnd();
+
+        glPopMatrix();
+    }
+
+    glDisable(GL_BLEND);
+    glEnable(GL_LIGHTING);
+}
+
 // Desenha inimigos e itens
 void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &items,
                   float camX, float camZ, float dx, float dz, const RenderAssets &r)
 {
-    glDisable(GL_LIGHTING);
+    glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
     glDepthFunc(GL_LEQUAL);
@@ -516,12 +654,23 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
         if (!isVisibleXZ(item.x, item.z, camX, camZ, hasFwd, fwdx, fwdz))
             continue;
 
-        if (item.type == ITEM_HEALTH)
-            drawSprite(item.x, item.z, 0.7f, 0.7f, r.texHealth, camX, camZ);
-        else if (item.type == ITEM_AMMO)
-            drawSprite(item.x, item.z, 0.7f, 0.7f, r.texAmmo, camX, camZ);
-    }
+        GLuint tex = 0;
+        float rCol=1, gCol=1, bCol=1;
 
+        if (item.type == ITEM_HEALTH) tex = r.texHealth;
+        else if (item.type == ITEM_AMMO) tex = r.texAmmo;
+        else if (item.type == ITEM_CARD) tex = r.texCard;
+        else if (item.type == ITEM_BERSERK) { tex = r.texHealth; rCol=1.0f; gCol=0.0f; bCol=0.0f; } // Tinted health as placeholder
+        else if (item.type == ITEM_HASTE) { tex = r.texAmmo; rCol=0.0f; gCol=1.0f; bCol=1.0f; } // Tinted ammo
+        else if (item.type == ITEM_WEAPON2) { tex = r.texGun2Default; rCol=0.4f; gCol=0.6f; bCol=1.0f; } // Blue tint
+
+        if (tex != 0)
+        {
+            glColor3f(rCol, gCol, bCol);
+            drawSprite(item.x, item.z, 0.4f, 0.4f, tex, camX, camZ);
+            glColor3f(1, 1, 1);
+        }
+    }
     // --- INIMIGOS ---
     for (const auto &en : enemies)
     {
@@ -544,6 +693,8 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
         drawSprite(en.x, en.z, 2.5f, 2.5f, currentTex, camX, camZ);
     }
 
-    glEnable(GL_LIGHTING);
+    // --- PROJÉTEIS ---
+    drawProjectiles(gameLevel().projectiles, camX, camZ, gameContext().time);
+
     glDisable(GL_ALPHA_TEST);
 }
