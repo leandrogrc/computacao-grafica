@@ -20,6 +20,7 @@ AudioSystem& gameAudio();
 
 // Fluxo principal
 bool gameInit(const char *mapPath);
+bool gameLoadLevel(int levelNum);
 void gameUpdate(float dt);
 void gameRender();
 void gameReset();

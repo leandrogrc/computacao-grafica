@@ -88,3 +88,6 @@ void audioPlayKillAt(AudioSystem& a, float x, float z);
 
 // Utilitário (se você quiser tocar "grunhido" a cada N tiros)
 void audioOnPlayerShot(AudioSystem& a);
+
+// Finaliza o sistema, limpa recursos e fecha o engine
+void audioShutdown(AudioSystem& a);

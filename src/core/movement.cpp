@@ -22,11 +22,11 @@ static bool isWallTile(int tx, int tz)
         return false;
 
     char c = data[tz][tx];
-    // Adicione E, H, A como liberados
-    if (c == 'E' || c == 'H' || c == 'A')
-        return false;
+    // Sólidos: 1, 2, M, H, S, O, C
+    if (c == '1' || c == '2' || c == 'M' || c == 'H' || c == 'S' || c == 'O' || c == 'C')
+        return true;
 
-    return (c == '1' || c == '2');
+    return false;
 }
 
 static bool pointIntersectsTile(float px, float pz, int tx, int tz, const LevelMetrics &m, float radius)
@@ -82,6 +82,8 @@ static bool canMoveTo(float nx, float nz)
 void atualizaMovimento()
 {
     float passo = GameConfig::PLAYER_STEPS;
+    if (gameContext().player.hasteTimer > 0.0f) passo *= 2.0f;
+    if (keyShift) passo *= 1.7f;
 
     float radYaw = yaw * 3.14159265f / 180.0f;
     float dirX = std::sin(radYaw);

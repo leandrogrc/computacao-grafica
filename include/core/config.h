@@ -9,4 +9,7 @@ namespace GameConfig
     // fração do tile usada como raio do jogador (colisão)
     constexpr float PLAYER_RADIUS_FACTOR = 0.35f;
     constexpr float PLAYER_STEPS = 0.15f;
+
+    constexpr float WALL_HEIGHT = 8.0f;
+    constexpr float CEILING_HEIGHT = 8.0f;
 }

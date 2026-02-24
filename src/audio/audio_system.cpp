@@ -492,3 +492,38 @@ void audioOnPlayerShot(AudioSystem& a) {
         }
     }
 }
+
+void audioShutdown(AudioSystem& a) {
+    if (!a.ok) return;
+
+    // Para todos os sons e deleta sources/buffers se necessário?
+    // Na verdade o engine.shutdown() fecha o device, o que invalida tudo.
+    
+    // Para sources conhecidos
+    stopIf(a.srcAmbient, a.engine);
+    stopIf(a.srcShot, a.engine);
+    stopIf(a.srcStep, a.engine);
+    stopIf(a.srcReload, a.engine);
+    stopIf(a.srcHurt, a.engine);
+    stopIf(a.srcClickReload, a.engine);
+    stopIf(a.srcKill, a.engine);
+    stopIf(a.srcLava, a.engine);
+    stopIf(a.srcBreath, a.engine);
+    stopIf(a.srcGrunt, a.engine);
+
+    for (ALuint s : a.srcEnemies) stopIf(s, a.engine);
+    for (ALuint s : a.srcEnemyScreams) stopIf(s, a.engine);
+
+    a.engine.shutdown();
+    a.ok = false;
+
+    // Limpa os vetores
+    a.srcEnemies.clear();
+    a.srcEnemyScreams.clear();
+    a.enemyScreamTimer.clear();
+    a.enemyPrevState.clear();
+
+    // Reseta flags
+    a.lavaPlaying = false;
+    a.stepPlaying = false;
+}

@@ -7,8 +7,8 @@ bool loadAssets(GameAssets &a)
 {
     a.texMenuBG = carregaTextura("assets/menu_bg.png");
 
-    a.texChao = carregaTextura("assets/181.png");
-    a.texParede = carregaTextura("assets/091.png");
+    a.texChao = carregaTextura("assets/levels/floor1.png");
+    a.texParede = carregaTextura("assets/levels/wall1.png");
     a.texSangue = carregaTextura("assets/016.png");
     a.texLava = carregaTextura("assets/179.png");
     a.texChaoInterno = carregaTextura("assets/100.png");
@@ -17,6 +17,26 @@ bool loadAssets(GameAssets &a)
 
     a.progSangue = criaShader("shaders/blood.vert", "shaders/blood.frag");
     a.progLava = criaShader("shaders/lava.vert", "shaders/lava.frag");
+
+    // --- Texturas por fase ---
+    // Fase 1: Cidade Apocalíptica
+    a.texChaoNivel[0]        = carregaTextura("assets/levels/floor1.png");
+    a.texParedeNivel[0]      = carregaTextura("assets/levels/wall1.png");
+    a.texChaoInternoNivel[0] = carregaTextura("assets/levels/floor1.png");
+    a.texParedeInterNivel[0] = carregaTextura("assets/levels/wall1.png");
+    a.texSkydomeNivel[0]     = carregaTextura("assets/levels/sky1.png");
+    // Fase 2: Esgoto / Subterrâneo
+    a.texChaoNivel[1]        = carregaTextura("assets/levels/floor2.png");
+    a.texParedeNivel[1]      = carregaTextura("assets/levels/wall2.png");
+    a.texChaoInternoNivel[1] = carregaTextura("assets/levels/floor2.png");
+    a.texParedeInterNivel[1] = carregaTextura("assets/levels/wall2.png");
+    a.texSkydomeNivel[1]     = carregaTextura("assets/levels/sky2.png");
+    // Fase 3: Inferno
+    a.texChaoNivel[2]        = carregaTextura("assets/levels/floor3.png");
+    a.texParedeNivel[2]      = carregaTextura("assets/levels/wall3.png");
+    a.texChaoInternoNivel[2] = carregaTextura("assets/levels/floor3.png");
+    a.texParedeInterNivel[2] = carregaTextura("assets/levels/wall3.png");
+    a.texSkydomeNivel[2]     = carregaTextura("assets/levels/sky3.png");
 
     // --- INIMIGO 0 ('J') ---
     a.texEnemies[0] = carregaTextura("assets/enemies/enemy.png");
@@ -48,15 +68,27 @@ bool loadAssets(GameAssets &a)
     a.texGunFire2 = carregaTextura("assets/gun_fire2.png");
     a.texGunReload1 = carregaTextura("assets/gun_reload1.png");
     a.texGunReload2 = carregaTextura("assets/gun_reload2.png");
+    a.texGunSprint = carregaTextura("assets/gun_sprint.png");
     a.texDamage = carregaTextura("assets/damage.png");
+    a.texGun2Default = carregaTextura("assets/plasma_idle.png");
+    a.texGun2Fire1 = carregaTextura("assets/plasma_fire1.png");
+    a.texGun2Fire2 = carregaTextura("assets/plasma_fire2.png");
 
     a.texHealth = carregaTextura("assets/health.png");
     a.texAmmo = carregaTextura("assets/066.png");
 
-    a.texSkydome = carregaTextura("assets/Va4wUMQ.png");
+    a.texSkydome = carregaTextura("assets/levels/sky1.png");
 
     a.texGunHUD = carregaTextura("assets/Shotgun.png");
     a.texHudFundo = carregaTextura("assets/088.png");
+
+
+    a.texWallMarket = carregaTextura("assets/levels/wall_market.png");
+    a.texWallHouse  = carregaTextura("assets/levels/wall_house.png");
+    a.texWallShop   = carregaTextura("assets/levels/wall_shop.png");
+    a.texWallOffice = carregaTextura("assets/levels/wall_office.png");
+    a.texHudTopBG   = carregaTextura("assets/hud_top_bg.png");
+    a.texCard       = carregaTextura("assets/item_card.png");
 
     if (!a.texChao || !a.texParede || !a.texSangue || !a.texLava || !a.progSangue ||
         !a.progLava || !a.texHealth || !a.texGunDefault || !a.texGunFire1 ||
@@ -64,7 +96,8 @@ bool loadAssets(GameAssets &a)
         !a.texDamage || !a.texAmmo || !a.texHealthOverlay || !a.texEnemies[0] ||
         !a.texEnemiesRage[0] || !a.texEnemiesDamage[0] || !a.texEnemies[1] ||
         !a.texEnemiesRage[1] || !a.texEnemiesDamage[1] || !a.texEnemies[2] ||
-        !a.texEnemiesRage[2] || !a.texEnemiesDamage[2] || !a.texGunHUD || !a.texHudFundo || !a.texMenuBG)
+        !a.texEnemiesRage[2] || !a.texEnemiesDamage[2] || !a.texGunHUD || !a.texHudFundo || !a.texMenuBG ||
+        !a.texGun2Default || !a.texGun2Fire1 || !a.texGun2Fire2)
     {
         std::printf("ERRO: falha ao carregar algum asset (textura/shader).\n");
         return false;

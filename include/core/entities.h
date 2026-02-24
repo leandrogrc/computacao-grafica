@@ -40,7 +40,20 @@ enum ItemType
 {
     ITEM_HEALTH,
     ITEM_AMMO,
-    ITEM_AMMO_BOX
+    ITEM_AMMO_BOX,
+    ITEM_CARD,
+    ITEM_BERSERK,
+    ITEM_HASTE,
+    ITEM_WEAPON2
+};
+
+struct Projectile
+{
+    float x, z;
+    float dx, dz;
+    float speed;
+    bool active;
+    bool fromEnemy; // se true, causa dano ao player; se false, aos inimigos
 };
 
 struct Item
