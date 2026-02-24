@@ -14,6 +14,8 @@ bool MapLoader::load(const char* filename) {
     mapData.clear();
     height = 0;
     width = 0;
+    playerStartX = 1.0f;
+    playerStartZ = 1.0f;
 
     while (std::getline(file, line)) {
 
