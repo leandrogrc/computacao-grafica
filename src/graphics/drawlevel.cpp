@@ -75,69 +75,17 @@ static void bindTexture0(GLuint tex)
     glBindTexture(GL_TEXTURE_2D, tex);
 }
 
-static float hash01(float x)
-{
-    float s = sinf(x * 12.9898f) * 43758.5453f;
-    return s - floorf(s);
-}
 
-static float flickerFluorescente(float t)
-{
-    const float rate = 4.0f;
-    float block = floorf(t * rate);
-    float r = hash01(block);
 
-    if (r < 0.22f)
-    {
-        float phase = t * rate - block;
-
-        if (phase > 0.35f && phase < 0.55f)
-            return 0.12f;
-
-        if (r < 0.06f && phase > 0.65f && phase < 0.78f)
-            return 0.40f;
-    }
-
-    return 0.96f + 0.04f * sinf(t * 5.0f);
-}
-
-static void setIndoorLampAt(float x, float z, float intensity)
-{
-    GLfloat pos[] = {x, CEILING_H - 0.05f, z, 1.0f};
-    glLightfv(GL_LIGHT1, GL_POSITION, pos);
-
-    GLfloat diff[] = {
-        1.20f * intensity,
-        1.22f * intensity,
-        1.28f * intensity,
-        1.0f};
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, diff);
-
-    GLfloat amb[] = {
-        1.10f * intensity,
-        1.10f * intensity,
-        1.12f * intensity,
-        1.0f};
-    glLightfv(GL_LIGHT1, GL_AMBIENT, amb);
-}
-
-static void beginIndoor(float wx, float wz, float time)
+static void beginIndoor()
 {
     glDisable(GL_LIGHT0);
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, kAmbientIndoor);
-
-    glEnable(GL_LIGHT1);
-
-    float f = flickerFluorescente(time);
-    float intensity = 1.2f * f;
-
-    setIndoorLampAt(wx, wz, intensity);
+    // Removed GL_LIGHT1 (indoor lamp) completely. 
 }
 
 static void endIndoor()
 {
-    glDisable(GL_LIGHT1);
-
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, kAmbientOutdoor);
     glEnable(GL_LIGHT0);
 }
@@ -345,7 +293,7 @@ static char getTileAt(const MapLoader &map, int tx, int tz)
     return data[tz][tx];
 }
 
-static void drawFace(float wx, float wz, int face, char neighbor, GLuint texParedeInternaX, float time)
+static void drawFace(float wx, float wz, int face, char neighbor, GLuint texParedeInternaX)
 {
     bool outside = (neighbor == '0' || neighbor == 'L' || neighbor == 'B');
 
@@ -359,7 +307,7 @@ static void drawFace(float wx, float wz, int face, char neighbor, GLuint texPare
     }
     else if (neighbor != '2')
     {
-        beginIndoor(wx, wz, time);
+        beginIndoor();
         desenhaParedePorFace(wx, wz, texParedeInternaX, face);
         endIndoor();
     }
@@ -406,7 +354,7 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
 
                 if (isIndoor)
                 {
-                    beginIndoor(wx, wz, time);
+                    beginIndoor();
                     desenhaTileChao(wx, wz, r.texChaoInterno, true);
                     endIndoor();
                 }
@@ -421,7 +369,7 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
             }
             else if (c == '3')
             {
-                beginIndoor(wx, wz, time);
+                beginIndoor();
                 desenhaTileChao(wx, wz, r.texChaoInterno, true);
                 endIndoor();
             }
@@ -452,10 +400,10 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
                 char vizDireita = getTileAt(map, x + 1, z);
                 char vizEsq = getTileAt(map, x - 1, z);
 
-                drawFace(wx, wz, 0, vizFrente, r.texParedeInterna, time);
-                drawFace(wx, wz, 1, vizTras, r.texParedeInterna, time);
-                drawFace(wx, wz, 2, vizDireita, r.texParedeInterna, time);
-                drawFace(wx, wz, 3, vizEsq, r.texParedeInterna, time);
+                drawFace(wx, wz, 0, vizFrente, r.texParedeInterna);
+                drawFace(wx, wz, 1, vizTras, r.texParedeInterna);
+                drawFace(wx, wz, 2, vizDireita, r.texParedeInterna);
+                drawFace(wx, wz, 3, vizEsq, r.texParedeInterna);
             }
             else if (c == 'L')
             {
@@ -660,8 +608,8 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
         if (item.type == ITEM_HEALTH) tex = r.texHealth;
         else if (item.type == ITEM_AMMO) tex = r.texAmmo;
         else if (item.type == ITEM_CARD) tex = r.texCard;
-        else if (item.type == ITEM_BERSERK) { tex = r.texHealth; rCol=1.0f; gCol=0.0f; bCol=0.0f; } // Tinted health as placeholder
-        else if (item.type == ITEM_HASTE) { tex = r.texAmmo; rCol=0.0f; gCol=1.0f; bCol=1.0f; } // Tinted ammo
+        else if (item.type == ITEM_BERSERK) tex = r.texBerserk;
+        else if (item.type == ITEM_HASTE) tex = r.texHaste;
         else if (item.type == ITEM_WEAPON2) { tex = r.texGun2Default; rCol=0.4f; gCol=0.6f; bCol=1.0f; } // Blue tint
 
         if (tex != 0)

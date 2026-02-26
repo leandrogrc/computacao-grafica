@@ -160,15 +160,23 @@ void playerTryAttack()
             {
                 drop.type = ITEM_WEAPON2;
             }
-            else if (g.player.cardsCollected < 3 && chance >= 85) // 15% para cartao
+            else if (chance >= 97) // 3% para Berserk
+            {
+                drop.type = ITEM_BERSERK;
+            }
+            else if (chance >= 94) // 3% para Haste
+            {
+                drop.type = ITEM_HASTE;
+            }
+            else if (g.player.cardsCollected < 3 && chance >= 85) // ~9% para cartao
             {
                 drop.type = ITEM_CARD;
             }
-            else if (chance >= 75) // 10% para vida
+            else if (chance >= 75 && g.player.health < 100) // ~10% para vida
             {
                 drop.type = ITEM_HEALTH;
             }
-            else // 65%+ para municao (default)
+            else // ~65%+ para municao (default)
             {
                 drop.type = ITEM_AMMO;
             }

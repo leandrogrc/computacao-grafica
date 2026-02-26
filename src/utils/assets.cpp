@@ -17,6 +17,7 @@ bool loadAssets(GameAssets &a)
 
     a.progSangue = criaShader("shaders/blood.vert", "shaders/blood.frag");
     a.progLava = criaShader("shaders/lava.vert", "shaders/lava.frag");
+    a.texMenuBG = carregaTextura("assets/menu_bg.png");
 
     // --- Texturas por fase ---
     // Fase 1: Cidade Apocalíptica
@@ -73,9 +74,12 @@ bool loadAssets(GameAssets &a)
     a.texGun2Default = carregaTextura("assets/plasma_idle.png");
     a.texGun2Fire1 = carregaTextura("assets/plasma_fire1.png");
     a.texGun2Fire2 = carregaTextura("assets/plasma_fire2.png");
+    a.texGun2Reload1 = carregaTextura("assets/plasma_reload.png");
 
     a.texHealth = carregaTextura("assets/health.png");
     a.texAmmo = carregaTextura("assets/066.png");
+    a.texBerserk = carregaTextura("assets/item_berserk.png");
+    a.texHaste = carregaTextura("assets/item_haste.png");
 
     a.texSkydome = carregaTextura("assets/levels/sky1.png");
 
@@ -97,7 +101,7 @@ bool loadAssets(GameAssets &a)
         !a.texEnemiesRage[0] || !a.texEnemiesDamage[0] || !a.texEnemies[1] ||
         !a.texEnemiesRage[1] || !a.texEnemiesDamage[1] || !a.texEnemies[2] ||
         !a.texEnemiesRage[2] || !a.texEnemiesDamage[2] || !a.texGunHUD || !a.texHudFundo || !a.texMenuBG ||
-        !a.texGun2Default || !a.texGun2Fire1 || !a.texGun2Fire2)
+        !a.texGun2Default || !a.texGun2Fire1 || !a.texGun2Fire2 || !a.texGun2Reload1)
     {
         std::printf("ERRO: falha ao carregar algum asset (textura/shader).\n");
         return false;

@@ -238,7 +238,7 @@ static void drawWeaponHUD(int w, int h, const HudTextures& tex, const HudState& 
         currentTex = tex.texGun2Default;
         if (ws == WeaponState::W_FIRE_1 || ws == WeaponState::W_RETURN) currentTex = tex.texGun2Fire1;
         else if (ws == WeaponState::W_FIRE_2) currentTex = tex.texGun2Fire2;
-        // Se no futuro houver reload para plasma, adicionar aqui
+        else if (ws == WeaponState::W_RELOAD_1 || ws == WeaponState::W_RELOAD_2 || ws == WeaponState::W_RELOAD_3) currentTex = tex.texGun2Reload1;
     }
 
     if (currentTex == 0)

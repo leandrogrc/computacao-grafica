@@ -141,6 +141,7 @@ bool gameInit(const char *mapPath)
     gHudTex.texGun2Default = gAssets.texGun2Default;
     gHudTex.texGun2Fire1 = gAssets.texGun2Fire1;
     gHudTex.texGun2Fire2 = gAssets.texGun2Fire2;
+    gHudTex.texGun2Reload1 = gAssets.texGun2Reload1;
     gHudTex.texDamage = gAssets.texDamage;
     gHudTex.texHealthOverlay = gAssets.texHealthOverlay;
 
@@ -153,6 +154,8 @@ bool gameInit(const char *mapPath)
 
     g.r.texHealth = gAssets.texHealth;
     g.r.texAmmo = gAssets.texAmmo;
+    g.r.texBerserk = gAssets.texBerserk;
+    g.r.texHaste = gAssets.texHaste;
 
     g.r.progSangue = gAssets.progSangue;
     g.r.progLava = gAssets.progLava;
@@ -275,6 +278,25 @@ void gameUpdate(float dt)
                 g.state = GameState::LEVEL_CLEAR;
             else
                 g.state = GameState::VITORIA;
+        }
+    }
+
+    // NOVO: CHECAGEM DE BOSS MORTO NO MAPA 3
+    if (g.currentLevel == 3 && g.player.cardsCollected >= 3)
+    {
+        bool bossDead = false;
+        for (auto& en : gLevel.enemies)
+        {
+            // Se matamos o boss, é vitoria
+            if (en.isBoss && en.state == STATE_DEAD)
+            {
+                bossDead = true;
+                break;
+            }
+        }
+        if (bossDead)
+        {
+            g.state = GameState::VITORIA;
         }
     }
 }

@@ -5,17 +5,7 @@
 
 void setupIndoorLightOnce()
 {
-    glEnable(GL_LIGHT1);
-    GLfloat lampDiffuse[]  = {2.0f, 2.0f, 2.0f, 1.0f};
-    GLfloat lampSpecular[] = {0.5f, 0.5f, 0.5f, 1.0f};
-    GLfloat lampAmbient[]  = {1.5f, 1.5f, 1.5f, 1.0f};
-    glLightfv(GL_LIGHT1, GL_DIFFUSE, lampDiffuse);
-    glLightfv(GL_LIGHT1, GL_SPECULAR, lampSpecular);
-    glLightfv(GL_LIGHT1, GL_AMBIENT, lampAmbient);
-    glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 0.6f);
-    glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.06f);
-    glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.02f);
-    glDisable(GL_LIGHT1);
+    // Removed GL_LIGHT1 setup completely.
 }
 
 void setupSunLightOnce()
@@ -42,7 +32,6 @@ void applyLevelLighting(int level, float time)
 {
     glEnable(GL_LIGHTING);
     glEnable(GL_LIGHT0);
-    glDisable(GL_LIGHT1);
     glDisable(GL_LIGHT2);
 
     if (level == 1)

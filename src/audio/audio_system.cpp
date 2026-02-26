@@ -16,12 +16,6 @@ static void stopIf(ALuint s, AudioEngine& e) {
     if (s) e.stop(s);
 }
 
-static void play2D(AudioSystem& a, ALuint s) {
-    if (!a.ok || s == 0) return;
-    a.engine.stop(s);
-    a.engine.play(s);
-}
-
 static void play3DAt(AudioSystem& a, ALuint s, float x, float z) {
     if (!a.ok || s == 0) return;
     a.engine.setSourcePos(s, {x, 0.0f, z});

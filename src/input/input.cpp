@@ -154,7 +154,7 @@ void keyboardUp(unsigned char key, int, int)
         altFullScreen();
     }
 }
-void mouseClick(int button, int state, int x, int y)
+void mouseClick(int button, int state, int /*x*/, int /*y*/)
 {
     keyShift = (glutGetModifiers() & GLUT_ACTIVE_SHIFT);
 

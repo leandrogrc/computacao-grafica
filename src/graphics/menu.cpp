@@ -262,64 +262,16 @@ void menuRender(int screenW, int screenH, float tempo,
 
     begin2D(screenW, screenH);
 
-    // ---- 1. FUNDO PRETO ----
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_BLEND);
-    glColor4f(0.03f, 0.0f, 0.0f, 1.0f);
-    glBegin(GL_QUADS);
-    glVertex2f(0, 0);
-    glVertex2f((float)screenW, 0);
-    glVertex2f((float)screenW, (float)screenH);
-    glVertex2f(0, (float)screenH);
-    glEnd();
+    // ---- 1. FUNDO DO MENU ----
+    drawTexturedFullscreen(screenW, screenH, a.texMenuBG);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // ---- 2. GLOW RADIAL CENTRAL (inferno) ----
-    float cx = screenW * 0.5f;
-    float cy = screenH * 0.5f;
-    float pulse = 0.5f + 0.5f * std::sin(tempo * 1.4f);
-    float r1 = screenW * 0.55f;
-    float r2 = screenW * 0.9f;
-
-    // inner glow (quente laranja-vermelho)
-    glBegin(GL_TRIANGLE_FAN);
-    glColor4f(0.55f, 0.08f, 0.0f, 0.30f + 0.12f * pulse);
-    glVertex2f(cx, cy);
-    glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
-    for (int i = 0; i <= 48; i++) {
-        float ang = i * 2.0f * 3.14159f / 48.0f;
-        glVertex2f(cx + std::cos(ang) * r1, cy + std::sin(ang) * r1);
-    }
-    glEnd();
-
-    // outer halo (vermelho escuro)
-    glBegin(GL_TRIANGLE_FAN);
-    glColor4f(0.30f, 0.0f, 0.0f, 0.14f + 0.08f * pulse);
-    glVertex2f(cx, cy);
-    glColor4f(0.0f, 0.0f, 0.0f, 0.0f);
-    for (int i = 0; i <= 48; i++) {
-        float ang = i * 2.0f * 3.14159f / 48.0f;
-        glVertex2f(cx + std::cos(ang) * r2, cy + std::sin(ang) * r2);
-    }
-    glEnd();
-
-    // ---- 3. SCANLINES ANIMADAS (CRT retro) ----
-    float scanOff = std::fmod(tempo * 25.0f, 4.0f);
-    glColor4f(0.0f, 0.0f, 0.0f, 0.20f);
-    glBegin(GL_QUADS);
-    for (float y = -scanOff; y < screenH + 4.0f; y += 4.0f) {
-        glVertex2f(0, y);
-        glVertex2f((float)screenW, y);
-        glVertex2f((float)screenW, y + 2.0f);
-        glVertex2f(0, y + 2.0f);
-    }
-    glEnd();
-
-    // ---- 4. VINHETA (bordas escuras) ----
+    // ---- 2. VINHETA (bordas escuras suaves) ----
     float bv = 160.0f; // largura da borda vertical
     float bh = 120.0f; // largura da borda horizontal
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_TEXTURE_2D);
+
     glBegin(GL_QUADS);
     // topo
     glColor4f(0,0,0,0.75f); glVertex2f(0,(float)screenH); glVertex2f((float)screenW,(float)screenH);
@@ -335,20 +287,20 @@ void menuRender(int screenW, int screenH, float tempo,
     glColor4f(0,0,0,0);     glVertex2f((float)screenW-bv,(float)screenH); glVertex2f((float)screenW-bv,0);
     glEnd();
 
-    // ---- 5. LINHA DECORATIVA SUPERIOR E INFERIOR ----
+    // ---- 3. LINHA DECORATIVA SUPERIOR E INFERIOR (Ciano) ----
     glLineWidth(2.0f);
     float lineY1 = (float)screenH * 0.72f;
     float lineY2 = (float)screenH * 0.32f;
     float margin = (float)screenW * 0.08f;
     float linePulse = 0.55f + 0.45f * std::sin(tempo * 2.0f);
-    glColor4f(0.8f, 0.15f, 0.0f, linePulse);
+    glColor4f(0.0f, 0.8f, 1.0f, linePulse); // Ciano
     glBegin(GL_LINES);
     glVertex2f(margin, lineY1);       glVertex2f(screenW - margin, lineY1);
     glVertex2f(margin, lineY2);       glVertex2f(screenW - margin, lineY2);
     glEnd();
 
-    // ---- 6. TÍTULO DO JOGO (tela principal) ou título passado ----
-    const std::string displayTitle = title.empty() ? "DOOM-CG" : title;
+    // ---- 4. TÍTULO DO JOGO (tela principal) ou título passado ----
+    const std::string displayTitle = title.empty() ? "CYBER PROTOCOL" : title;
     float scaleX = 1.4f;
     float scaleY = 1.4f;
 
@@ -375,15 +327,15 @@ void menuRender(int screenW, int screenH, float tempo,
 
     float glow = 0.7f + 0.3f * std::sin(tempo * 3.0f);
 
-    // glow suave atrás (vermelho)
-    drawTitle( 0,  0, 1.0f, 0.05f, 0.0f, 0.18f * glow, 16.0f);
+    // glow suave atrás (magenta)
+    drawTitle( 0,  0, 0.8f, 0.0f, 1.0f, 0.25f * glow, 16.0f);
     // sombra preta
-    drawTitle( 8, -8, 0.0f, 0.0f,  0.0f, 0.9f,          6.0f);
-    drawTitle( 5, -5, 0.0f, 0.0f,  0.0f, 0.8f,          6.0f);
-    // contorno escarlate
-    drawTitle( 2, -2, 0.6f, 0.0f,  0.0f, 1.0f,          5.0f);
-    // texto principal branco-amarelado
-    drawTitle( 0,  0, 1.0f, 0.92f, 0.70f, 1.0f,         3.5f);
+    drawTitle( 8, -8, 0.0f, 0.0f, 0.0f, 0.9f,          6.0f);
+    drawTitle( 5, -5, 0.0f, 0.0f, 0.0f, 0.8f,          6.0f);
+    // contorno ciano
+    drawTitle( 2, -2, 0.0f, 1.0f, 1.0f, 1.0f,          5.0f);
+    // texto principal branco/azulado
+    drawTitle( 0,  0, 0.9f, 0.95f, 1.0f, 1.0f,         3.5f);
 
     // ---- 7. SUBTÍTULO animado ----
     float scaleSub = 0.22f;
@@ -406,12 +358,12 @@ void menuRender(int screenW, int screenH, float tempo,
         glutStrokeCharacter(GLUT_STROKE_ROMAN, c);
     glPopMatrix();
 
-    // Texto piscante branco/amarelo
+    // Texto piscante magenta/ciano claro
     glLineWidth(3.0f);
     if ((int)(tempo * 2.5f) % 2 == 0)
-        glColor4f(1.0f, 0.96f, 0.40f, 1.0f);
+        glColor4f(1.0f, 0.0f, 1.0f, 1.0f); // Magenta
     else
-        glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+        glColor4f(0.8f, 1.0f, 1.0f, 1.0f); // Ciano claro
     glPushMatrix();
     glTranslatef(xSub, ySub, 0);
     glScalef(scaleSub, scaleSub, 1);

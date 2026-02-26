@@ -34,6 +34,8 @@ struct Enemy
 
     // NOVO: Tempo que ele fica com a textura de dano
     float hurtTimer;
+
+    bool isBoss;
 };
 
 enum ItemType

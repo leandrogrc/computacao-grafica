@@ -24,6 +24,7 @@ struct HudTextures
     GLuint texGun2Default = 0;
     GLuint texGun2Fire1 = 0;
     GLuint texGun2Fire2 = 0;
+    GLuint texGun2Reload1 = 0;
 
     GLuint texDamage = 0;
     GLuint texHealthOverlay = 0;

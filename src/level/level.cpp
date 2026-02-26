@@ -35,22 +35,25 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
 
             // --- Inimigos ---
             int enemyType = -1;
+            bool isBoss = false;
 
             if (c == 'J' || c == 'j') enemyType = 0;
             else if (c == 'T' || c == 't') enemyType = 1;
             else if (c == 'm') enemyType = 2; // 'M' is Market facade
+            else if (c == 'B' || c == 'b') { enemyType = 2; isBoss = true; }
             else if (c == 'G' || c == 'g') enemyType = 3;
 
             if (enemyType != -1)
             {
                 Enemy e;
                 e.type = enemyType;
+                e.isBoss = isBoss;
                 e.x = wx;
                 e.z = wz;
                 e.startX = wx; 
                 e.startZ = wz;
                 e.respawnTimer = 0.0f;
-                e.hp = ENEMY_START_HP;
+                e.hp = isBoss ? 500.0f : ENEMY_START_HP;
                 e.state = STATE_IDLE;
                 e.animFrame = 0;
                 e.animTimer = 0;
@@ -75,6 +78,16 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
                 i.z = wz;
                 i.type = ITEM_AMMO;
                 i.active = true;
+                lvl.items.push_back(i);
+            }
+            else if (c == 'C' || c == 'c') // Item Card
+            {
+                Item i;
+                i.x = wx;
+                i.z = wz;
+                i.type = ITEM_CARD;
+                i.active = true;
+                i.respawnTimer = 0.0f; // doesn't matter, non-respawnable
                 lvl.items.push_back(i);
             }
             else if (c == 'E') // Exit / saída de fase

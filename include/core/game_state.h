@@ -35,6 +35,8 @@ struct RenderAssets
 
     GLuint texHealth = 0;
     GLuint texAmmo = 0;
+    GLuint texBerserk = 0;
+    GLuint texHaste = 0;
 
     GLuint progSangue = 0;
     GLuint progLava = 0;

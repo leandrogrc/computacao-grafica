@@ -73,7 +73,7 @@ void updateEntities(float dt)
         switch (en.state)
         {
         case STATE_IDLE:
-            if (dist < ENEMY_VIEW_DIST) en.state = STATE_CHASE;
+            if (dist < ENEMY_VIEW_DIST || en.isBoss) en.state = STATE_CHASE;
             en.attackCooldown = 0.0f;
             break;
 
@@ -83,7 +83,7 @@ void updateEntities(float dt)
                 en.state = STATE_ATTACK;
                 en.attackCooldown = 0.5f;
             }
-            else if (dist > ENEMY_VIEW_DIST * 1.5f)
+            else if (dist > ENEMY_VIEW_DIST * 1.5f && !en.isBoss)
             {
                 en.state = STATE_IDLE;
             }
@@ -162,7 +162,8 @@ void updateEntities(float dt)
             else if (item.type == ITEM_AMMO)
             {
                 item.respawnTimer = 999999.0f;
-                g.player.reserveAmmo = 20;
+                g.player.reserveAmmo += 12; // Ganha +1 pente
+                if (g.player.reserveAmmo > 60) g.player.reserveAmmo = 60; // Limite máximo de munição reserva
             }
             else if (item.type == ITEM_CARD)
             {
