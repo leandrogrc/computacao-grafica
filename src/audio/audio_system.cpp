@@ -147,7 +147,7 @@ static void ensureEnemyExtra(AudioSystem& a, const Level& level) {
 
 // ---------------- API ----------------
 
-void audioInit(AudioSystem& a, const Level& level) {
+void audioInit(AudioSystem& a, const Level& level, int levelIndex) {
     if (a.ok) return;
 
     a.ok = a.engine.init();
@@ -159,8 +159,13 @@ void audioInit(AudioSystem& a, const Level& level) {
     a.engine.setDistanceModel();
 
     // Loads (com fallback mono/estéreo)
-    a.bufAmbient = a.engine.loadWav("assets/audio/music.wav");
-    if (!a.bufAmbient) a.bufAmbient = a.engine.loadWav("assets/audio/music.wav");
+    char amFile[64];
+    std::snprintf(amFile, sizeof(amFile), "assets/audio/ambient%d.wav", levelIndex);
+    a.bufAmbient = a.engine.loadWav(amFile);
+    if (!a.bufAmbient) {
+        std::snprintf(amFile, sizeof(amFile), "assets/audio/ambient%d_mono.wav", levelIndex);
+        a.bufAmbient = a.engine.loadWav(amFile);
+    }
 
     a.bufShot = a.engine.loadWav("assets/audio/shot_mono.wav");
     if (!a.bufShot) a.bufShot = a.engine.loadWav("assets/audio/shot.wav");
@@ -490,11 +495,11 @@ void audioOnPlayerShot(AudioSystem& a) {
 void audioShutdown(AudioSystem& a) {
     if (!a.ok) return;
 
-    // Para todos os sons e deleta sources/buffers se necessário?
-    // Na verdade o engine.shutdown() fecha o device, o que invalida tudo.
-    
-    // Para sources conhecidos
-    stopIf(a.srcAmbient, a.engine);
+    // O sistema de áudio não pode fechar o device nas trocas de fases
+    // para não causar o crash (AL lib: alc_cleanup: 1 device not closed).
+    // Então apenas paramos os sons. Mantemos a música (srcAmbient) rodando!
+
+    // stopIf(a.srcAmbient, a.engine); // Mantém a musica
     stopIf(a.srcShot, a.engine);
     stopIf(a.srcStep, a.engine);
     stopIf(a.srcReload, a.engine);
@@ -508,10 +513,10 @@ void audioShutdown(AudioSystem& a) {
     for (ALuint s : a.srcEnemies) stopIf(s, a.engine);
     for (ALuint s : a.srcEnemyScreams) stopIf(s, a.engine);
 
-    a.engine.shutdown();
-    a.ok = false;
+    // a.engine.shutdown(); // NÃO!
+    // a.ok = false;        // NÃO!
 
-    // Limpa os vetores
+    // Limpa os vetores de inimigos para a nova fase
     a.srcEnemies.clear();
     a.srcEnemyScreams.clear();
     a.enemyScreamTimer.clear();

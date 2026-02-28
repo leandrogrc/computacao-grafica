@@ -67,7 +67,7 @@ struct AudioSystem {
 
 // Inicializa OpenAL, carrega buffers, cria sources "globais" e prepara vetores por inimigo.
 // Chame depois do level já estar carregado (para saber quantos inimigos existem).
-void audioInit(AudioSystem& a, const Level& level);
+void audioInit(AudioSystem& a, const Level& level, int levelIndex = 1);
 
 // Atualiza listener, passos, loops de inimigos, lava, respiração, screams e kill-detect.
 void audioUpdate(
