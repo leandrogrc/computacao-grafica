@@ -338,7 +338,9 @@ void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, con
 
             bool isEntity = (c == 'J' || c == 'T' || c == 'G' || c == 'F' || c == 'I' ||
                              c == 'j' || c == 't' || c == 'm' || c == 'g' ||
-                             c == 'h' || c == 'a' || c == 'k' || c == 'w' || c == 'W');
+                             c == 'h' || c == 'a' || c == 'A' || 
+                             c == 'c' || c == 'C' || c == 'B' || c == 'b' || 
+                             c == 'k' || c == 'K' || c == 'w' || c == 'W');
 
             if (isEntity)
             {
