@@ -1,11 +1,12 @@
 #include "level/level.h"
 #include "core/config.h" 
+#include "core/game.h"
 #include <cstdio>
 
 // Configurações básicas para spawn
 static const float ENEMY_START_HP = 100.0f;
 
-bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
+bool loadLevel(Level &lvl, const char *mapPath, float tileSize, int levelIndex)
 {
     // 1. Carrega o mapa de texto (paredes, chão)
     if (!lvl.map.load(mapPath))
@@ -26,7 +27,7 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
 
     for(int z = 0; z < H; z++)
     {
-        const std::string& row = data[z];
+        const auto& row = data[z];
         for(int x = 0; x < (int)row.size(); x++)
         {
             char c = row[x];
@@ -40,7 +41,7 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
             if (c == 'J' || c == 'j') enemyType = 0;
             else if (c == 'T' || c == 't') enemyType = 1;
             else if (c == 'm') enemyType = 2; // 'M' is Market facade
-            else if (c == 'B' || c == 'b') { enemyType = 2; isBoss = true; }
+            else if (c == 'B' || c == 'b') { enemyType = 4; isBoss = true; }
             else if (c == 'G' || c == 'g') enemyType = 3;
 
             if (enemyType != -1)
@@ -53,7 +54,12 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
                 e.startX = wx; 
                 e.startZ = wz;
                 e.respawnTimer = 0.0f;
-                e.hp = isBoss ? 500.0f : ENEMY_START_HP;
+                // Multiplicador de HP baseado na Fase:
+                // Fase 1 = 1x
+                // Fase 2 = 1.3x
+                // Fase 3 = 1.6x
+                float hpMultiplier = 1.0f + ((float)(levelIndex - 1) * 0.3f);
+                e.hp = (isBoss ? 500.0f : ENEMY_START_HP) * hpMultiplier;
                 e.state = STATE_IDLE;
                 e.animFrame = 0;
                 e.animTimer = 0;
@@ -63,32 +69,15 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize)
             }
             else if (c == 'I' || c == 'h') // Item Health / kit
             {
-                Item i;
-                i.x = wx;
-                i.z = wz;
-                i.type = ITEM_HEALTH;
-                i.active = true;
-                i.respawnTimer = 0.0f;
-                lvl.items.push_back(i);
+                // Removido: Itens servem apenas como drops agora
             }
             else if (c == 'A' || c == 'a') // Ammo
             {
-                Item i;
-                i.x = wx;
-                i.z = wz;
-                i.type = ITEM_AMMO;
-                i.active = true;
-                lvl.items.push_back(i);
+                // Removido: Itens servem apenas como drops agora
             }
             else if (c == 'C' || c == 'c') // Item Card
             {
-                Item i;
-                i.x = wx;
-                i.z = wz;
-                i.type = ITEM_CARD;
-                i.active = true;
-                i.respawnTimer = 0.0f; // doesn't matter, non-respawnable
-                lvl.items.push_back(i);
+                // Removido: Cartões agora são apenas dropados a cada 5 mortes
             }
             else if (c == 'E') // Exit / saída de fase
             {

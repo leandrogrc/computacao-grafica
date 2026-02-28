@@ -16,5 +16,5 @@ struct Level
     float exitX = 0.0f, exitZ = 0.0f;
 };
 
-bool loadLevel(Level &lvl, const char *mapPath, float tileSize);
+bool loadLevel(Level &lvl, const char *mapPath, float tileSize, int levelIndex = 1);
 void applySpawn(const Level &lvl, float &camX, float &camZ);

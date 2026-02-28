@@ -92,7 +92,9 @@ void updateEntities(float dt)
                 float dirX = dx / dist;
                 float dirZ = dz / dist;
 
-                float moveStep = ENEMY_SPEED * dt;
+                // Mapa 1 = 1x, Mapa 2 = 1.15x, Mapa 3 = 1.30x
+                float speedMultiplier = 1.0f + ((float)(g.currentLevel - 1) * 0.15f);
+                float moveStep = (ENEMY_SPEED * speedMultiplier) * dt;
 
                 float nextX = en.x + dirX * moveStep;
                 if (isWalkable(nextX, en.z)) en.x = nextX;
@@ -123,8 +125,16 @@ void updateEntities(float dt)
                 en.attackCooldown -= dt;
                 if (en.attackCooldown <= 0.0f)
                 {
-                    g.player.health -= 10;
-                    en.attackCooldown = 1.0f;
+                    // Fase 1: 10 de dano, 1.0s cooldown
+                    // Fase 2: 15 de dano, 0.85s cooldown
+                    // Fase 3: 20 de dano, 0.70s cooldown
+                    int baseDamage = 10;
+                    float dmgMultiplier = 1.0f + ((float)(g.currentLevel - 1) * 0.5f);
+                    float speedBonus = ((float)(g.currentLevel - 1) * 0.15f);
+
+                    g.player.health -= (int)(baseDamage * dmgMultiplier);
+                    en.attackCooldown = 1.0f - speedBonus; 
+                    
                     g.player.damageAlpha = 1.0f;
                     audioPlayHurt(audio);
                 }
@@ -139,46 +149,49 @@ void updateEntities(float dt)
     for (auto& item : lvl.items)
     {
         if (!item.active)
-        {
-            item.respawnTimer -= dt;
-            if (item.respawnTimer <= 0.0f) item.active = true;
             continue;
-        }
 
         float dx = camX - item.x;
         float dz = camZ - item.z;
 
         if (dx * dx + dz * dz < 1.0f)
         {
+            if (item.type == ITEM_CARD && g.player.cardsCollected >= 3) {
+                continue; // Limite atingido, não coleta
+            }
+
             item.active = false;
 
             if (item.type == ITEM_HEALTH)
             {
-                item.respawnTimer = 15.0f;
                 g.player.health += 50;
                 if (g.player.health > 100) g.player.health = 100;
                 g.player.healthAlpha = 1.0f;
             }
             else if (item.type == ITEM_AMMO)
             {
-                item.respawnTimer = 999999.0f;
                 g.player.reserveAmmo += 12; // Ganha +1 pente
                 if (g.player.reserveAmmo > 60) g.player.reserveAmmo = 60; // Limite máximo de munição reserva
             }
             else if (item.type == ITEM_CARD)
             {
-                item.respawnTimer = 1e9f; // Nao respawna
                 g.player.cardsCollected++;
             }
             else if (item.type == ITEM_BERSERK)
             {
-                item.respawnTimer = 30.0f;
                 g.player.berserkTimer = 10.0f;
             }
             else if (item.type == ITEM_HASTE)
             {
-                item.respawnTimer = 30.0f;
                 g.player.hasteTimer = 10.0f;
+            }
+            else if (item.type == ITEM_WEAPON2)
+            {
+                if (!g.hasWeapon[1]) {
+                    g.hasWeapon[1] = true;
+                    g.activeWeaponIdx = 1;
+                    std::printf("Arma secundaria obtida!\n");
+                }
             }
         }
     }

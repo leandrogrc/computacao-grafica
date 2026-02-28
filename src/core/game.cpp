@@ -78,25 +78,23 @@ bool gameLoadLevel(int levelNum)
     // Para e fecha o sistema de áudio atual de forma completa
     audioShutdown(gAudioSys);
 
-    if (!loadLevel(gLevel, mapPaths[levelNum], GameConfig::TILE_SIZE))
+    if (!loadLevel(gLevel, mapPaths[levelNum], GameConfig::TILE_SIZE, levelNum))
         return false;
 
     applySpawn(gLevel, camX, camZ);
     camY = GameConfig::PLAYER_EYE_Y;
 
-    audioInit(gAudioSys, gLevel);
+    audioInit(gAudioSys, gLevel, levelNum);
 
     // Reseta munição e arma mas mantém vida
     g.player.currentAmmo = MAX_MAGAZINE;
     g.player.reserveAmmo = 25;
     g.player.cardsCollected = 0; // Novo: Reseta objetivo
+    g.player.enemiesDefeated = 0;
     g.player.berserkTimer = 0.0f;
     g.player.hasteTimer = 0.0f;
     gLevel.projectiles.clear();
     for (int i=0; i<2; ++i) g.weapons[i] = WeaponAnim{};
-    g.activeWeaponIdx = 0;
-    g.hasWeapon[0] = true; 
-    g.hasWeapon[1] = false;
     g.time = 0.0f;
 
     g.state = GameState::JOGANDO;
@@ -169,7 +167,7 @@ bool gameInit(const char *mapPath)
     g.r.texCard       = gAssets.texCard;
     g.r.texGun2Default = gAssets.texGun2Default;
 
-    if (!loadLevel(gLevel, mapPath, GameConfig::TILE_SIZE))
+    if (!loadLevel(gLevel, mapPath, GameConfig::TILE_SIZE, 1))
         return false;
 
     applySpawn(gLevel, camX, camZ);
@@ -181,7 +179,7 @@ bool gameInit(const char *mapPath)
     glutSetCursor(GLUT_CURSOR_NONE);
 
     // Audio init + ambient + enemy sources
-    audioInit(gAudioSys, gLevel);
+    audioInit(gAudioSys, gLevel, 1);
 
     g.currentLevel = 1;
     g.state = GameState::MENU_INICIAL;
