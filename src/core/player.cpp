@@ -146,6 +146,8 @@ void playerTryAttack()
             en.state = STATE_DEAD;
             en.respawnTimer = 15.0f;
 
+            g.player.enemiesDefeated++;
+
             Item drop;
             drop.x = en.x;
             drop.z = en.z;
@@ -153,10 +155,13 @@ void playerTryAttack()
             drop.respawnTimer = 0.0f;
 
             // Logica de drop re-balanceada:
-            // Prioridade: Municao (55%) > Vida (20%) > Arma (15%, 1x) > Cartao (10%, se precisar)
             int chance = std::rand() % 100;
 
-            if (!g.hasWeapon[1] && chance < 10) // 10% chance unica de dar a arma
+            if (g.player.cardsCollected < 3 && (g.player.enemiesDefeated % 5 == 0 || chance >= 85))
+            {
+                drop.type = ITEM_CARD;
+            }
+            else if (!g.hasWeapon[1] && chance < 10) // 10% chance unica de dar a arma
             {
                 drop.type = ITEM_WEAPON2;
             }
@@ -167,10 +172,6 @@ void playerTryAttack()
             else if (chance >= 94) // 3% para Haste
             {
                 drop.type = ITEM_HASTE;
-            }
-            else if (g.player.cardsCollected < 3 && chance >= 85) // ~9% para cartao
-            {
-                drop.type = ITEM_CARD;
             }
             else if (chance >= 75 && g.player.health < 100) // ~10% para vida
             {

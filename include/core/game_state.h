@@ -12,6 +12,7 @@ struct PlayerState
     int currentAmmo = 12;
     int reserveAmmo = 25;
     int cardsCollected = 0;
+    int enemiesDefeated = 0;
 
     float berserkTimer = 0.0f;
     float hasteTimer = 0.0f;

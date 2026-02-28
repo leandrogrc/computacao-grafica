@@ -164,3 +164,4 @@ void mouseClick(int button, int state, int /*x*/, int /*y*/)
         playerTryAttack();
     }
 }
+void simulate_enter() { keyboard(13, 0, 0); }
