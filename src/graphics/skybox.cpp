@@ -4,27 +4,11 @@
 #include <cmath>
 #include "core/game_state.h"
 
-static inline float clampf(float x, float a, float b)
-{
-    return (x < a) ? a : (x > b) ? b : x;
-}
-
-static float vFromPhi(float phi, float phiMax, float vStart, float vHorizon)
-{
-    float t = phi / phiMax;
-    float v = vStart + t * (vHorizon - vStart);
-    return clampf(v, 0.0f, 1.0f);
-}
+// Limpando funcoes antigas nao utilizadas
 
 void drawSkydome(float camX, float camY, float camZ, const RenderAssets& r)
 {
-    const float R = 200.0f; // Raio do domo (Céu)
-    const int slices = 64;  // Resolução horizontal
-    const int stacks = 24;  // Resolução vertical
-    
-    const float phiMax = 3.1415926535f;
-    const float vStart = 0.00f;
-    const float vHorizon = 2.00f; 
+    const float R = 200.0f; // Tamanho da caixa do céu
 
     glPushAttrib(GL_ENABLE_BIT | GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_TEXTURE_BIT);
     glDisable(GL_LIGHTING);
@@ -38,40 +22,54 @@ void drawSkydome(float camX, float camY, float camZ, const RenderAssets& r)
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, r.texSkydome);
     
+    // Configuração para evitar bordas feias entre as faces
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     
     glPushMatrix();
     glTranslatef(camX, camY, camZ); // O céu segue o jogador
 
-    for (int i = 0; i < stacks; ++i)
-    {
-        const float t0 = (float)i / (float)stacks;
-        const float t1 = (float)(i + 1) / (float)stacks;
-        const float phi0 = t0 * phiMax;
-        const float phi1 = t1 * phiMax;
-        const float v0 = vFromPhi(phi0, phiMax, vStart, vHorizon);
-        const float v1 = vFromPhi(phi1, phiMax, vStart, vHorizon);
-        
-        glBegin(GL_QUAD_STRIP);
-        for (int j = 0; j <= slices; ++j)
-        {
-            const float s = (float)j / (float)slices; 
-            const float theta = s * (2.0f * 3.1415926535f);
-            
-            const float x0 = R * std::sin(phi0) * std::cos(theta);
-            const float y0 = R * std::cos(phi0);
-            const float z0 = R * std::sin(phi0) * std::sin(theta);
-            
-            const float x1 = R * std::sin(phi1) * std::cos(theta);
-            const float y1 = R * std::cos(phi1);
-            const float z1 = R * std::sin(phi1) * std::sin(theta);
-            
-            glTexCoord2f(s, v1); glVertex3f(x1, y1, z1);
-            glTexCoord2f(s, v0); glVertex3f(x0, y0, z0);
-        }
-        glEnd();
-    }
+    glBegin(GL_QUADS);
+
+    // Mapeamos a textura panorâmica nas 4 paredes do cubo (0 a 1 em U)
+    // Frente (Z negativo) - U: 0.00 a 0.25
+    glTexCoord2f(0.25f, 0.0f); glVertex3f( R,  R, -R);
+    glTexCoord2f(0.00f, 0.0f); glVertex3f(-R,  R, -R);
+    glTexCoord2f(0.00f, 1.0f); glVertex3f(-R, -R, -R);
+    glTexCoord2f(0.25f, 1.0f); glVertex3f( R, -R, -R);
+
+    // Direita (X positivo) - U: 0.25 a 0.50
+    glTexCoord2f(0.50f, 0.0f); glVertex3f( R,  R,  R);
+    glTexCoord2f(0.25f, 0.0f); glVertex3f( R,  R, -R);
+    glTexCoord2f(0.25f, 1.0f); glVertex3f( R, -R, -R);
+    glTexCoord2f(0.50f, 1.0f); glVertex3f( R, -R,  R);
+
+    // Trás (Z positivo) - U: 0.50 a 0.75
+    glTexCoord2f(0.75f, 0.0f); glVertex3f(-R,  R,  R);
+    glTexCoord2f(0.50f, 0.0f); glVertex3f( R,  R,  R);
+    glTexCoord2f(0.50f, 1.0f); glVertex3f( R, -R,  R);
+    glTexCoord2f(0.75f, 1.0f); glVertex3f(-R, -R,  R);
+
+    // Esquerda (X negativo) - U: 0.75 a 1.00
+    glTexCoord2f(1.00f, 0.0f); glVertex3f(-R,  R, -R);
+    glTexCoord2f(0.75f, 0.0f); glVertex3f(-R,  R,  R);
+    glTexCoord2f(0.75f, 1.0f); glVertex3f(-R, -R,  R);
+    glTexCoord2f(1.00f, 1.0f); glVertex3f(-R, -R, -R);
+
+    // Teto (Topo) - Esticamos a borda superior da imagem
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-R,  R, -R);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f( R,  R, -R);
+    glTexCoord2f(1.0f, 0.0f); glVertex3f( R,  R,  R);
+    glTexCoord2f(0.0f, 0.0f); glVertex3f(-R,  R,  R);
+
+    // Chão (Fundo) - Esticamos a borda inferior
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-R, -R,  R);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f( R, -R,  R);
+    glTexCoord2f(1.0f, 1.0f); glVertex3f( R, -R, -R);
+    glTexCoord2f(0.0f, 1.0f); glVertex3f(-R, -R, -R);
+
+    glEnd();
+
     glPopMatrix();
     
     glDepthMask(GL_TRUE);
