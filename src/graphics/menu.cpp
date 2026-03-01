@@ -244,8 +244,9 @@ void storyNarrativeRender(int screenW, int screenH, float tempo, GLuint bgTex)
         "Um nevoeiro abissal engoliu a cidade,",
         "trazendo horrores das profundezas.",
         "",
-        "Voce e o ultimo sobrevivente do esquadrao.",
-        "Colete 3 Cartoes de Acesso em cada setor para avancar.",
+        "Derrote inimigos para coletar Cartoes,",
+        "poderes temporarios e municao.",
+        "Obtenha 3 Cartoes por setor para avancar.",
         "Alcance as profundezas e extermine o Boss final."
     };
 
@@ -253,7 +254,8 @@ void storyNarrativeRender(int screenW, int screenH, float tempo, GLuint bgTex)
     float startY = screenH - 180.0f;
     float lineSpacing = 45.0f;
 
-    for (int i = 0; i < 7; ++i) {
+    int numLines = sizeof(lines) / sizeof(lines[0]);
+    for (int i = 0; i < numLines; ++i) {
         if (lines[i].empty()) continue;
         
         float w = uiStrokeTextWidthScaled(lines[i].c_str(), scale);
