@@ -15,7 +15,9 @@
 #include "input/keystate.h"
 
 #include "graphics/drawlevel.h"
+
 #include "graphics/skybox.h"
+#include "graphics/draw_entities.h"
 #include "graphics/hud.h"
 #include "graphics/menu.h"
 #include "graphics/lighting.h"
@@ -335,6 +337,9 @@ void drawWorld3D()
     float dirZ = -cosf(radPitch) * cosf(radYaw);
 
     gluLookAt(camX, camY, camZ, camX + dirX, camY + dirY, camZ + dirZ, 0.0f, 1.0f, 0.0f);
+
+    // Liga a luz dinâmica da Lanterna saindo do Jogador mirando pra direção LookAt
+    applyPlayerFlashlight(camX, camY - 0.2f, camZ, dirX, dirY, dirZ);
 
     drawSkydome(camX, camY, camZ, g.r);
     drawLevel(gLevel.map, camX, camZ, dirX, dirZ, g.r, g.time);
