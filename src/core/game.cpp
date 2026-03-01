@@ -22,6 +22,8 @@
 #include "graphics/menu.h"
 #include "graphics/lighting.h"
 
+#include "core/particles.h"
+
 #include "core/movement.h"
 #include "core/player.h"
 #include "core/entities.h"
@@ -102,6 +104,7 @@ bool gameLoadLevel(int levelNum)
     g.player.berserkTimer = 0.0f;
     g.player.hasteTimer = 0.0f;
     gLevel.projectiles.clear();
+    initParticles();
     for (int i=0; i<2; ++i) g.weapons[i] = WeaponAnim{};
     g.time = 0.0f;
 
@@ -204,6 +207,8 @@ bool gameInit(const char *mapPath)
     g.hasWeapon[1] = false;
     g.activeWeaponIdx = 0;
 
+    initParticles();
+
     return true;
 }
 
@@ -228,6 +233,7 @@ void gameReset()
 
     // Respawna o jogador
     applySpawn(gLevel, camX, camZ);
+    initParticles();
 }
 
 /**
@@ -275,6 +281,7 @@ void gameUpdate(float dt)
     }
 
     updateEntities(dt);
+    updateParticles(dt);
     if (keyG) playerTryGrabWeapon();
     updateWeaponAnim(dt);
 
@@ -368,6 +375,7 @@ void drawWorld3D()
     drawSkydome(camX, camY, camZ, g.r);
     drawLevel(gLevel.map, camX, camZ, dirX, dirZ, g.r, g.time);
     drawEntities(gLevel.enemies, gLevel.items, camX, camZ, dirX, dirZ, g.r);
+    drawParticles(camX, camY, camZ);
 }
 
 void gameRender()
