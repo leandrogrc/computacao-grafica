@@ -5,25 +5,30 @@
 
 void setupIndoorLightOnce()
 {
-    // Removed GL_LIGHT1 setup completely.
 }
 
 void setupSunLightOnce()
 {
     glEnable(GL_LIGHT0);
-    GLfloat sceneAmbient[] = {0.45f, 0.30f, 0.25f, 1.0f};
+    // Escuridão Global - Muito pouca luz ambiente para tudo não ficar com pitch black absoluto.
+    GLfloat sceneAmbient[] = {0.05f, 0.05f, 0.08f, 1.0f};
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, sceneAmbient);
-    GLfloat sunDiffuse[] = {1.4f, 0.55f, 0.30f, 1.0f};
+    
+    // Sem luz do Sol difusa para o clima "Alan Wake" prevalecer.
+    GLfloat sunDiffuse[] = {0.0f, 0.0f, 0.0f, 1.0f};
     GLfloat sunSpecular[] = {0.0f, 0.0f, 0.0f, 1.0f};
     glLightfv(GL_LIGHT0, GL_DIFFUSE, sunDiffuse);
     glLightfv(GL_LIGHT0, GL_SPECULAR, sunSpecular);
+    
     glEnable(GL_COLOR_MATERIAL);
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 }
 
 void setSunDirectionEachFrame()
 {
-    GLfloat sunDir[] = {0.3f, 1.0f, 0.2f, 0.0f};
+    // A luz direcional zero global (Sol) foi inutilizada pelas cores difusas "zeradas" em setup.
+    // Direção apontada apenas para evitar possíveis artefatos no math da GL.
+    GLfloat sunDir[] = {0.0f, 1.0f, 0.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, sunDir);
 }
 
@@ -31,37 +36,70 @@ void setSunDirectionEachFrame()
 void applyLevelLighting(int level, float time)
 {
     glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT0); // Luz fraca da "Lua/Estrelas" (Apenas ambiente)
     glDisable(GL_LIGHT2);
+
+    // Em todos os níveis, a luz difusa será nula e a ambiente absurdamente baixa
+    // Forçando o jogador a depender 100% do novo Spotlight da Lanterna (GL_LIGHT1).
 
     if (level == 1)
     {
-        // Fase 1: Cidade — Clara e visível
-        GLfloat amb[] = {0.4f, 0.4f, 0.4f, 1.0f};
+        // Fase 1: Cidade Obscura
+        GLfloat amb[] = {0.08f, 0.08f, 0.12f, 1.0f};
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, amb);
-        GLfloat diff[] = {0.8f, 0.8f, 0.8f, 1.0f};
+        GLfloat diff[] = {0.0f, 0.0f, 0.0f, 1.0f};
         glLightfv(GL_LIGHT0, GL_DIFFUSE, diff);
     }
     else if (level == 2)
     {
-        // Fase 2: Subterrâneo — Agora bem iluminado
-        GLfloat amb[] = {0.35f, 0.4f, 0.35f, 1.0f};
+        // Fase 2: Subterrâneo - Breu Quase Absoluto
+        GLfloat amb[] = {0.02f, 0.02f, 0.02f, 1.0f};
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, amb);
-        GLfloat diff[] = {0.7f, 0.8f, 0.7f, 1.0f};
+        GLfloat diff[] = {0.0f, 0.0f, 0.0f, 1.0f};
         glLightfv(GL_LIGHT0, GL_DIFFUSE, diff);
         GLfloat dir[] = {0.0f, -1.0f, 0.0f, 0.0f};
         glLightfv(GL_LIGHT0, GL_POSITION, dir);
     }
     else if (level == 3)
     {
-        // Fase 3: Inferno — Vermelho vibrante mas visível
-        float pulse = 0.5f + 0.5f * std::sin(time * 1.5f);
-        float r = 0.8f + 0.2f * pulse;
-        GLfloat amb[] = {r * 0.6f, 0.3f, 0.3f, 1.0f};
+        // Fase 3: Inferno - Escuridão opressora levemente avermelhada
+        float pulse = 0.5f + 0.5f * std::sin(time * 0.5f);
+        GLfloat amb[] = {0.05f + 0.03f * pulse, 0.01f, 0.01f, 1.0f};
         glLightModelfv(GL_LIGHT_MODEL_AMBIENT, amb);
-        GLfloat diff[] = {r * 1.2f, 0.6f, 0.6f, 1.0f};
+        GLfloat diff[] = {0.0f, 0.0f, 0.0f, 1.0f};
         glLightfv(GL_LIGHT0, GL_DIFFUSE, diff);
-        GLfloat dir[] = {0.0f, 1.0f, 0.0f, 0.0f};
+        GLfloat dir[] = {0.0f, -1.0f, 0.0f, 0.0f};
         glLightfv(GL_LIGHT0, GL_POSITION, dir);
     }
+}
+
+// Configura e envia as propriedades conicas de Spotlight "Lanterna" atrelada à Câmera
+void applyPlayerFlashlight(float camX, float camY, float camZ, float dirX, float dirY, float dirZ)
+{
+    glEnable(GL_LIGHT1);
+
+    // 1. Cor Forte e Branca (Halógena fria)
+    GLfloat lightAmbient[]  = {0.0f, 0.0f, 0.0f, 1.0f}; // Spotlight nao emite luz global pra cantos escuros
+    GLfloat lightDiffuse[]  = {1.5f, 1.4f, 1.3f, 1.0f}; 
+    GLfloat lightSpecular[] = {1.0f, 1.0f, 1.0f, 1.0f};
+
+    glLightfv(GL_LIGHT1, GL_AMBIENT,  lightAmbient);
+    glLightfv(GL_LIGHT1, GL_DIFFUSE,  lightDiffuse);
+    glLightfv(GL_LIGHT1, GL_SPECULAR, lightSpecular);
+
+    // 2. Posição (Onde a câmera está) - w = 1.0f pq é Positional (ponto local e nao infinito)
+    GLfloat lightPos[] = {camX, camY, camZ, 1.0f};
+    glLightfv(GL_LIGHT1, GL_POSITION, lightPos);
+
+    // 3. O Cone do Sporlight
+    GLfloat spotDir[] = {dirX, dirY, dirZ};
+    glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spotDir);
+    
+    glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 25.0f); // Ângulo de corte da lanterna (25 graus pros lados)
+    glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 15.0f); // Foco. Quanto maior, mais concentrada a borda da poça de luz.
+
+    // 4. Atenuação (Decair distanciamento)
+    glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION,  1.0f);
+    glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION,    0.025f);
+    glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.001f);
 }

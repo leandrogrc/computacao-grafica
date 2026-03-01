@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include "input/input.h"
 #include "input/keystate.h"
+#include "graphics/menu_melt.h"
 #include "core/window.h"
 #include "graphics/menu.h"
 #include "core/game.h"

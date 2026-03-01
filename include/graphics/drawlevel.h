@@ -7,10 +7,10 @@
 
 struct RenderAssets; // forward decl (vem de core/game_state.h)
 
+bool isVisibleXZ(float objX, float objZ,
+               float camX, float camZ,
+               bool hasFwd, float fwdx, float fwdz);
+
 void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, const RenderAssets &r, float time);
 
-void drawEntities(const std::vector<Enemy> &enemies,
-                  const std::vector<Item> &items,
-                  float camX, float camZ, float dx, float dz,
-                  const RenderAssets &r);
 #endif
