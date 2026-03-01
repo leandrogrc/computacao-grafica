@@ -245,8 +245,9 @@ void storyNarrativeRender(int screenW, int screenH, float tempo, GLuint bgTex)
         "trazendo horrores das profundezas.",
         "",
         "Derrote inimigos para coletar Cartoes,",
-        "poderes temporarios e municao.",
-        "Obtenha 3 Cartoes por setor para avancar.",
+        "poderes temporários, armas e munição.",
+        "",
+        "Obtenha 3 Cartoes por setor para avançar.",
         "Alcance as profundezas e extermine o Boss final."
     };
 
