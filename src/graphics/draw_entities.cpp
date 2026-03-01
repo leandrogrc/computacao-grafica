@@ -147,7 +147,15 @@ void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &it
         else
             currentTex = r.texEnemies[t];
 
-        drawSprite(en.x, en.z, 2.5f, 2.5f, currentTex, camX, camZ);
+        float w = 2.5f;
+        float h = 2.5f;
+
+        if (en.isBoss) {
+            w *= 1.8f;
+            h *= 1.8f;
+        }
+
+        drawSprite(en.x, en.z, w, h, currentTex, camX, camZ);
     }
 
     // --- PROJÉTEIS ---
