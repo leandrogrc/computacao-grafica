@@ -7,6 +7,10 @@ void setupIndoorLightOnce()
 {
 }
 
+/**
+ * Configuração global das luzes que representam o ambiente diurno ou global (Sol).
+ * Chamada apenas uma vez na inicialização ou transição longa.
+ */
 void setupSunLightOnce()
 {
     glEnable(GL_LIGHT0);
@@ -24,6 +28,10 @@ void setupSunLightOnce()
     glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 }
 
+/**
+ * Usada para posicionar a luz global (se estivesse ativa) a cada frame.
+ * Atualmente as cores difusas estão desligadas para manter o ambiente noturno/tenso.
+ */
 void setSunDirectionEachFrame()
 {
     // A luz direcional zero global (Sol) foi inutilizada pelas cores difusas "zeradas" em setup.
@@ -32,7 +40,14 @@ void setSunDirectionEachFrame()
     glLightfv(GL_LIGHT0, GL_POSITION, sunDir);
 }
 
-// Aplica iluminação distinta por fase
+/**
+ * Aplica parâmetros de iluminação globais específicos para o ambiente de cada nível.
+ * Controla também a coloração misteriosa e pulsações, criando o clima e atmosfera 
+ * tensa da sobrevivência para as 3 diferentes fases (cidade escura, caverna e inferno).
+ *
+ * @param level Número da fase atual (1, 2 ou 3)
+ * @param time Tempo global do jogo (usado no cálculo do seno para pulsos nas luzes)
+ */
 void applyLevelLighting(int level, float time)
 {
     glEnable(GL_LIGHTING);
@@ -73,7 +88,21 @@ void applyLevelLighting(int level, float time)
     }
 }
 
-// Configura e envia as propriedades conicas de Spotlight "Lanterna" atrelada à Câmera
+/**
+ * Configura e envia as propriedades cônicas (Spotlight) simulando uma Lanterna que
+ * acompanha o Jogador. Transforma essa luz em uma "Halógena" branca focalizada que 
+ * recorta a escuridão absoluta e exige o olhar do jogador.
+ *
+ * NOTA: Esta função PRECISA ser chamada APÓS `gluLookAt` para que as coordenadas do mundo 
+ * se convertam em coordenadas da câmera de forma precisa.
+ *
+ * @param camX Posição em X da câmera do jogador
+ * @param camY Posição vertical da câmera do jogador (levemente afundada simula segurar a lanterna)
+ * @param camZ Posição em Z da câmera do jogador
+ * @param dirX Vetor de olhar para o eixo X
+ * @param dirY Vetor de olhar para o eixo Y
+ * @param dirZ Vetor de olhar para o eixo Z
+ */
 void applyPlayerFlashlight(float camX, float camY, float camZ, float dirX, float dirY, float dirZ)
 {
     glEnable(GL_LIGHT1);

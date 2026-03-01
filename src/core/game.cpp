@@ -64,7 +64,13 @@ void gameTogglePause()
         g.state = GameState::JOGANDO;
 }
 
-// --- Carrega uma fase pelo número (1, 2 ou 3) ---
+/**
+ * Carrega a fase especificada passando o caminho correto do arquivo de texto do mapa.
+ * Lida com o reinício da vida, contagem de itens/munições do jogador e prepara o áudio.
+ * 
+ * @param levelNum O número do nível a ser carregado (1, 2 ou 3)
+ * @return Retorna true caso a fase carregue com sucesso, e false caso dê erro de leitura.
+ */
 bool gameLoadLevel(int levelNum)
 {
     static const char* mapPaths[] = {
@@ -103,7 +109,13 @@ bool gameLoadLevel(int levelNum)
     return true;
 }
 
-// --- INIT ---
+/** --- INIT ---
+ * Inicializa o estado principal do motor do jogo, criando os buffers OpenGL, sub-sistemas
+ * de áudio, carregamento de assets das texturas e sprites, e por fim joga o usuário na 
+ * fase do Menu Inicial com as opções de iniciar o jogo.
+ *
+ * @param mapPath Caminho em disco para o arquivo da Fase 1 (usado internamente em gameLoadLevel)
+ */
 bool gameInit(const char *mapPath)
 {
     glEnable(GL_LIGHTING);
@@ -218,6 +230,14 @@ void gameReset()
     applySpawn(gLevel, camX, camZ);
 }
 
+/**
+ * Atualiza toda a lógica central do jogo a cada frame. Responsável por calcular físicas
+ * de movimento, captar comandos de teclado e atualizar todas as entidades e sistemas
+ * de animação de arma e HUD do jogador.
+ *
+ * @param dt O "Delta Time" - Tempo decorrido desde o último frame (em segundos). Usado
+ *           para cálculos precisos de movimentação independente do framerate.
+ */
 void gameUpdate(float dt)
 {
     g.time += dt;
@@ -301,7 +321,11 @@ void gameUpdate(float dt)
     }
 }
 
-// Função auxiliar para desenhar o mundo 3D (Inimigos, Mapa, Céu)
+/**
+ * Função auxiliar que compõe todo o processo de renderização e desenho do Mundo 3D.
+ * Passa pelo controle da Câmera (ModelView e LookAt), Skybox, Mapa (Paredes, Teto e Chão),
+ * Iluminção por Fase, Posição da Lanterna e por fim o desenho dos Inimigos, Drops e Tiros.
+ */
 void drawWorld3D()
 {
     glMatrixMode(GL_MODELVIEW);

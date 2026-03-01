@@ -28,9 +28,20 @@ static float gCullHFovDeg = 170.0f;     // FOV horizontal do culling (cenário +
 static float gCullNearTiles = 2.0f;     // dentro disso não faz culling angular
 static float gCullMaxDistTiles = 20.0f; // 0 = sem limite; em tiles
 
-// Retorna TRUE se deve renderizar o objeto no plano XZ (distância + cone de FOV)
-// - Usa as configs globais gCull*
-// - Usa forward já normalizado (fwdx,fwdz) e flag hasFwd
+/**
+ * Culling Tridimensional por Cone de Visão (Frustum Culling Simplificado).
+ * Calcula se um objeto ou parede específica do mapa está visível na tela atual do jogador
+ * baseando-se no ângulo de visão (FOV) e na distância máxima de renderização.
+ *
+ * @param objX Posição X do objeto geométrico a ser testado
+ * @param objZ Posição Z do objeto geométrico a ser testado
+ * @param camX Posição X da câmera do jogador
+ * @param camZ Posição Z da câmera do jogador
+ * @param hasFwd Booleano indicando se possuímos um vetor de direção válido
+ * @param fwdx Vetor de olhar normalizado para o eixo X
+ * @param fwdz Vetor de olhar normalizado para o eixo Z
+ * @return True se deve ser desenhado; False se pode ser ignorado na renderização (culling)
+ */
 bool isVisibleXZ(float objX, float objZ,
                float camX, float camZ,
                bool hasFwd, float fwdx, float fwdz)
@@ -282,6 +293,18 @@ static char getTileAt(const MapLoader &map, int tx, int tz)
     return data[tz][tx];
 }
 
+/**
+ * Lógica para renderizar apenas os lados abertos (faces) de uma parede (Tile '2'),
+ * analisando e comparando os Tiles adjacentes (vizinhos) na matriz.
+ * Se uma parede '2' tem um vizinho '0' (Vazio/Rua), ela desenhará aquela face com 
+ * propriedades visuais e de iluminação específicas para se misturar com os grafismos de fora.
+ *
+ * @param wx Posição X real no mundo para esse tile
+ * @param wz Posição Z real no mundo para esse tile
+ * @param face O ID numérico da Face verificada (0 a 3, cobrindo Frente, Trás, Direita, Esquerda)
+ * @param neighbor O caractere identificador do Tile vizinho a esta face
+ * @param texParedeInternaX ID do buffer da textura principal da parede interior
+ */
 static void drawFace(float wx, float wz, int face, char neighbor, GLuint texParedeInternaX)
 {
     bool outside = (neighbor == '0' || neighbor == 'L' || neighbor == 'B');
@@ -311,6 +334,19 @@ static void drawFace(float wx, float wz, int face, char neighbor, GLuint texPare
     }
 }
 
+/**
+ * Laço de renderização principal e dinâmico que percorre a string multidimensional do mapa e
+ * decide o que desenhar na tela baseando-se no caractere atual, lidando com performance 
+ * (usando `isVisibleXZ`), iluminação adaptativa (se é Teto ou Chão) e spawns.
+ *
+ * @param map Estrutura de dados já parseada contendo tudo sobre o grid do mapa
+ * @param px Posição X do jogador no mundo
+ * @param pz Posição Z do jogador no mundo
+ * @param dx Direção Vectorial X de onde a câmera está focada
+ * @param dz Direção Vectorial Z de onde a câmera está focada
+ * @param r Estrutura contendo todas os IDs de texturas e Shaders linkados à VRAM
+ * @param time Tempo contínuo em MS; repassado para animações complexas em Shaders e Portal de Fim de Fase
+ */
 void drawLevel(const MapLoader &map, float px, float pz, float dx, float dz, const RenderAssets &r, float time)
 {
     const auto &data = map.data();
