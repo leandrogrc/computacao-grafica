@@ -293,23 +293,20 @@ void gameUpdate(float dt)
         return;
     }
 
-    // CHECAGEM DE SAÍDA DE FASE
-    if (gLevel.hasExit)
+    // CHECAGEM DE SAÍDA DE FASE (Para Mapas 1 e 2 apenas)
+    if (gLevel.hasExit && g.currentLevel < 3)
     {
         float dx = camX - gLevel.exitX;
         float dz = camZ - gLevel.exitZ;
         // Só permite sair se coletou as 3 cartas
         if (dx*dx + dz*dz < 2.5f && g.player.cardsCollected >= 3)
         {
-            if (g.currentLevel < 3)
-                g.state = GameState::LEVEL_CLEAR;
-            else
-                g.state = GameState::VITORIA;
+            g.state = GameState::LEVEL_CLEAR;
         }
     }
 
     // NOVO: CHECAGEM DE BOSS MORTO NO MAPA 3
-    if (g.currentLevel == 3 && g.player.cardsCollected >= 3)
+    if (g.currentLevel == 3)
     {
         bool bossDead = false;
         for (auto& en : gLevel.enemies)
