@@ -3,6 +3,7 @@
 enum class GameState
 {
     MENU_INICIAL,
+    STORY_NARRATIVE,
     JOGANDO,
     PAUSADO,
     GAME_OVER,

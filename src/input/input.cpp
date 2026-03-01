@@ -28,6 +28,16 @@ void keyboard(unsigned char key, int, int)
         return;
     }
 
+    // --- STORY NARRATIVE ---
+    if (state == GameState::STORY_NARRATIVE)
+    {
+        if (key == 13)
+        {
+            gameSetState(GameState::JOGANDO);
+        }
+        return;
+    }
+
     // --- GAME OVER ---
     if (state == GameState::GAME_OVER)
     {

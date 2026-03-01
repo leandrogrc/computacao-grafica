@@ -402,6 +402,10 @@ void gameRender()
     {
         menuRender(janelaW, janelaH, g.time, "", "Pressione ENTER para Jogar", g.r);
     }
+    else if (g.state == GameState::STORY_NARRATIVE)
+    {
+        storyNarrativeRender(janelaW, janelaH, g.time, g.r.texMenuBG);
+    }
     else if (g.state == GameState::GAME_OVER)
     {
         drawWorld3D();

@@ -112,7 +112,7 @@ void menuRender(int screenW, int screenH, float tempo,
     glEnd();
 
     // ---- 4. TÍTULO DO JOGO (tela principal) ou título passado ----
-    const std::string displayTitle = title.empty() ? "CYBER PROTOCOL" : title;
+    const std::string displayTitle = title.empty() ? "ABYSSAL PROTOCOL" : title;
     float scaleX = 1.4f;
     float scaleY = 1.4f;
 
@@ -206,8 +206,78 @@ void menuRender(int screenW, int screenH, float tempo,
     // ---- 9. Disparo do efeito melt ----
     if (menuMeltCheckStart(screenW, screenH))
     {
-        gameSetState(GameState::JOGANDO);
+        gameSetState(GameState::STORY_NARRATIVE);
     }
+
+    glDisable(GL_BLEND);
+    end2D();
+    glPopAttrib();
+}
+
+void storyNarrativeRender(int screenW, int screenH, float tempo, GLuint bgTex)
+{
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_LIGHTING);
+    glDisable(GL_FOG);
+    glDisable(GL_CULL_FACE);
+
+    begin2D(screenW, screenH);
+
+    // 1) Escurece bastante a arte de fundo com um blend preto
+    glColor3f(0.2f, 0.2f, 0.2f);
+    drawTexturedFullscreen(screenW, screenH, bgTex);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    
+    // Vinheta extra escura
+    glColor4f(0, 0, 0, 0.85f);
+    glBegin(GL_QUADS);
+    glVertex2f(0, 0); glVertex2f(screenW, 0); glVertex2f(screenW, screenH); glVertex2f(0, screenH);
+    glEnd();
+
+    // 2) Textos de Narrativa
+    std::string lines[] = {
+        "O Protocolo falhou.",
+        "Um nevoeiro abissal engoliu a cidade,",
+        "trazendo horrores das profundezas.",
+        "",
+        "Voce e o ultimo soldado tatico sobrevivente.",
+        "Sua ultima missao: descer ao labirinto e",
+        "exterminar a origem desse Pesadelo."
+    };
+
+    float scale = 0.25f;
+    float startY = screenH - 180.0f;
+    float lineSpacing = 45.0f;
+
+    for (int i = 0; i < 7; ++i) {
+        if (lines[i].empty()) continue;
+        
+        float w = uiStrokeTextWidthScaled(lines[i].c_str(), scale);
+        float lineX = (screenW - w) / 2.0f;
+        float lineY = startY - (i * lineSpacing);
+
+        // Sombras vermelhas borradas e core text em branco/cinza
+        glLineWidth(5.0f);
+        glColor4f(0.6f, 0.0f, 0.0f, 0.7f);
+        uiDrawStrokeText(lineX + 3, lineY - 3, lines[i].c_str(), scale);
+
+        glLineWidth(2.5f);
+        glColor4f(0.9f, 0.9f, 0.9f, 1.0f);
+        uiDrawStrokeText(lineX, lineY, lines[i].c_str(), scale);
+    }
+
+    // 3) Push to continue blinking text
+    float fPulse = 0.3f + 0.7f * std::abs(std::sin(tempo * 2.0f));
+    const char* hint = "Pressione ENTER para Descer";
+    float hw = uiStrokeTextWidthScaled(hint, 0.20f);
+    
+    glLineWidth(2.0f);
+    glColor4f(1.0f, 1.0f, 1.0f, fPulse);
+    uiDrawStrokeText((screenW - hw) / 2.0f, 80.0f, hint, 0.20f);
 
     glDisable(GL_BLEND);
     end2D();
