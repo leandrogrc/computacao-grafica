@@ -212,7 +212,11 @@ bool gameInit(const char *mapPath)
     return true;
 }
 
-// Reinicia o jogo
+/**
+ * Restaura todas as variáveis de estado do Jogador (Vida, Munição, Temporizadores) e Força o 
+ * renascimento (Respawn) dele nas âncoras originais do mapa atual. 
+ * Útil para Game Over.
+ */
 void gameReset()
 {
     g.player.health = 100;
@@ -375,6 +379,12 @@ void drawWorld3D()
     drawParticles(camX, camY, camZ);
 }
 
+/**
+ * Rotina Principal de Desenho do Jogo na Janela.
+ * Limpa os Framebuffers (Color e Depth) e decide, baseado no Enum `GameState` atual,
+ * se desenha o Mundo 3D (JOGANDO) com seu respectivo HUD sobreposto, 
+ * ou se preenche a tela com os Menus (Iniciais, Pausa, Narrativa, Vitoria e Derrota).
+ */
 void gameRender()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

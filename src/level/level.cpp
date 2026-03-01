@@ -6,6 +6,11 @@
 // Configurações básicas para spawn
 static const float ENEMY_START_HP = 100.0f;
 
+/**
+ * Função de Parser principal que lê o arquivo de texto (ex: mapa1.txt), gera as métricas de offset
+ * e converte cada caractere do mapa num bloco 3D sólido ou numa entidade (Inimigo, Boss, Saída).
+ * Também ajusta a dificuldade multiplicando o HP do monstro baseado no índice do nível atual.
+ */
 bool loadLevel(Level &lvl, const char *mapPath, float tileSize, int levelIndex)
 {
     // 1. Carrega o mapa de texto (paredes, chão)
@@ -91,6 +96,10 @@ bool loadLevel(Level &lvl, const char *mapPath, float tileSize, int levelIndex)
     return true;
 }
 
+/**
+ * Procura pelo caractere 'P' ou 'p' no mapa carregado para ancorar as coordenadas iniciais 
+ * da câmera do jogador (Spawn Point X e Z).
+ */
 void applySpawn(const Level &lvl, float &camX, float &camZ)
 {
     lvl.metrics.spawnPos(lvl.map, camX, camZ);

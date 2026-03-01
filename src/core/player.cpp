@@ -14,6 +14,11 @@ static constexpr float HIT_RADIUS = 0.55f;
 // Ajuste fino: alcance máximo do tiro no mundo
 static constexpr float MAX_RANGE  = 17.0f;
 
+/**
+ * Verifica rastro visual/lógico da arma do jogador colidindo com um círculo 2D (Hitbox do inimigo)
+ * Utiliza álgebra linear vetorial para testar interseção via projeção ortogonal do raio contra
+ * o centro do círculo XZ do inimigo. Retorna 'true' se colidir, e salva em outT a distância percorrida.
+ */
 static bool rayCircleIntersectXZ(
     float ox, float oz,     // origem do raio
     float dx, float dz,     // direção NORMALIZADA
@@ -54,6 +59,10 @@ static bool rayCircleIntersectXZ(
     return outT >= 0.0f;
 }
 
+/**
+ * Tenta recarregar a arma do jogador caso ela não esteja cheia, haja munição no inventário (reserva)
+ * e o jogador não esteja já rodando outra animação de arma (W_IDLE). Puxa o áudio de Reload.
+ */
 void playerTryReload()
 {
     auto &g = gameContext();
@@ -73,6 +82,13 @@ void playerTryReload()
     audioPlayReload(audio);
 }
 
+/**
+ * Executa toda a lógica de tiro ("Hitscan") quando o jogador clica para atirar.
+ * Traça uma linha matemática a partir da câmera do jogador em direção ao Yaw atual.
+ * Se colidir contra a "Hitbox" de algum monstro vivo (via rayCircleIntersectXZ), deduz a vida
+ * e roda o burst 3D the partículas de Sangue (BLOOD). 
+ * Se o raio não interceptar um monstro e atingir uma parede do mapa primeiro, nada especial ocorre (partículas foram removidas).
+ */
 void playerTryAttack()
 {
     auto &g = gameContext();
@@ -193,6 +209,11 @@ void playerTryAttack()
     }
 }
 
+/**
+ * Gerenciador de Máquina de Estados (FSM) de Animação de Armas de todos os arsenais do player.
+ * Controla os delays e Keyframes de Fire 1 > Fire 2 > Pump (se for a Escopeta) > Reload 1..2..3, etc.
+ * Atualizado dinamicamente via DeltaTime.
+ */
 void updateWeaponAnim(float dt)
 {
     auto &g = gameContext();
@@ -262,6 +283,9 @@ void updateWeaponAnim(float dt)
     }
 }
 
+/**
+ * Tenta forçar a troca ativa de arma dependendo da key que o jogador apertou (ex: '1' para shotgun).
+ */
 void playerSwitchWeapon(int idx)
 {
     auto &g = gameContext();
@@ -276,6 +300,10 @@ void playerSwitchWeapon(int idx)
     g.activeWeaponIdx = idx;
 }
 
+/**
+ * Interage num raio ao redor do jogador para varrer o mapa buscando entidades do tipo ITEM_WEAPON2.
+ * Se o jogador estiver fisicamente perto da arma metralhadora, ela some do chão e desbloqueia no inventário.
+ */
 void playerTryGrabWeapon()
 {
     auto &g = gameContext();

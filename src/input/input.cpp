@@ -10,6 +10,12 @@
 #include "core/game.h"
 #include "core/player.h"
 
+/**
+ * Listener global disparado pelo S.O. toda vez que o Jogador aperta uma tecla no teclado.
+ * Faz o roteamento estrutural baseado no `GameState` atual:
+ * No MENU ou HISTÓRIA, o Enter avança.
+ * Durante JOGANDO, mapeia as letras (WASD, R, G, etc.) para setters booleanos.
+ */
 void keyboard(unsigned char key, int, int)
 {
     const GameState state = gameGetState();
@@ -132,6 +138,10 @@ void keyboard(unsigned char key, int, int)
     }
 }
 
+/**
+ * Listener disparado quando o Jogador "Solta" a tecla.
+ * Essencial para parar o movimento de deslize suavizado quando ele solta o W ou S.
+ */
 void keyboardUp(unsigned char key, int, int)
 {
     keyShift = (glutGetModifiers() & GLUT_ACTIVE_SHIFT);
@@ -165,6 +175,11 @@ void keyboardUp(unsigned char key, int, int)
         altFullScreen();
     }
 }
+/**
+ * Listener disparado ao clicar na Janela com o Mouse.
+ * Na nossa arquitetura FPS, o clique esquerdo (GLUT_LEFT_BUTTON) invoca o `playerTryAttack()` 
+ * para lidar com frames da arma e hitscans.
+ */
 void mouseClick(int button, int state, int /*x*/, int /*y*/)
 {
     keyShift = (glutGetModifiers() & GLUT_ACTIVE_SHIFT);

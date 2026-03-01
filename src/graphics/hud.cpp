@@ -34,6 +34,10 @@ static void end2D()
     glMatrixMode(GL_MODELVIEW);
 }
 
+/**
+ * Aplica um efeito de "Monitor CRT" ou "Capacete" nos cantos da tela e linhas de escaneamento.
+ * Ajusta a cor (Tint) da vinheta dinamicamente se o jogador pegar powerups (Vermelho para Berserk).
+ */
 static void drawVignetteAndScanlines(int w, int h)
 {
     begin2D(w, h);
@@ -295,6 +299,10 @@ static void drawWeaponHUD(int w, int h, const HudTextures& tex, const HudState& 
     end2D();
 }
 
+/**
+ * Painel principal inferior que exibe barras/valores textuais de integridade (Saúde do Jogador)
+ * e o display métrico numérico da arma atual (Munição no pente e Munição Reserva).
+ */
 static void drawBottomHUD(int w, int h, const HudState& s)
 {
     begin2D(w, h);
@@ -550,6 +558,11 @@ static void drawPowerupStatus(int w, int h, const HudState& s)
     end2D();
 }
 
+/**
+ * Função orquestradora que une e sobrepõe todas as camadas gráficas de Interface (2D Overlay) 
+ * por cima do framework 3D renderizado embaixo. 
+ * A ordem é essencial: Vinhetas -> Arma Visível -> Painel Inferior (Vida/Munição) -> MiniMapa -> Dano
+ */
 void hudRenderAll(
     int screenW,
     int screenH,

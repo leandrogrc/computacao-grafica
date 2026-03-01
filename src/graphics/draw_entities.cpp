@@ -7,6 +7,10 @@
 #include <GL/glut.h>
 #include <cmath>
 
+/**
+ * Desenha uma geometria retangular (Quad) texturizada virada para a câmera (Billboard).
+ * É a base para colocar Inimigos, Itens e a vegetação/elementos 2D no mundo 3D simulado.
+ */
 void drawSprite(float x, float z, float w, float h, GLuint tex, float camX, float camZ)
 {
     glEnable(GL_BLEND);
@@ -48,6 +52,11 @@ void drawSprite(float x, float z, float w, float h, GLuint tex, float camX, floa
     glDisable(GL_BLEND);
 }
 
+/**
+ * Renderiza os feixes de ataque disparados por inimigos. 
+ * Implementa um Additive Blending para criar um efeito incandescente "Neon" e usa cruzamentos 
+ * de polígonos para simular volume ao invés de ser só uma folha de papel.
+ */
 void drawProjectiles(const std::vector<Projectile>& projectiles, float camX, float camZ, float time)
 {
     glDisable(GL_LIGHTING);
@@ -88,7 +97,13 @@ void drawProjectiles(const std::vector<Projectile>& projectiles, float camX, flo
     glEnable(GL_LIGHTING);
 }
 
-// Desenha inimigos e itens
+/**
+ * Lógica principal para desenhar todas as criaturas e utilitários que habitam o cenário atual.
+ * 
+ * Itera pela lista de Itens verificando se estão visíveis (Viewing Frustum simples).
+ * Depois itera pelos inimigos e escolhe qual frame de animação carregar na Sprite principal 
+ * (Caminhando, Correndo ou Levando Dano), escalonando-os caso sejam o Chefão Final.
+ */
 void drawEntities(const std::vector<Enemy> &enemies, const std::vector<Item> &items,
                   float camX, float camZ, float dx, float dz, const RenderAssets &r)
 {

@@ -4,6 +4,11 @@
 #include "audio/audio_system.h"
 #include <cmath>
 
+/**
+ * Testa se uma coordenada tridimensional (X, Z) do mundo de jogo cai dentro de um bloco sólido 
+ * (parede, estante, máquina) ou num corredor onde o player/inimigos podem atravessar.
+ * Ajuda a impedir que os monstros entrem atráves de paredes (Clipping).
+ */
 bool isWalkable(float x, float z)
 {
     auto& lvl = gameLevel();
@@ -25,6 +30,11 @@ bool isWalkable(float x, float z)
     return true;
 }
 
+/**
+ * Gira o tiro do inimigo na direção do jogador de forma estática (Projectile Instancing).
+ * É disparado geralmente por inimigos tipo ranged ou quando o player está muito distante 
+ * e o inimigo tentou "prever" onde o alvo estaria.
+ */
 static void spawnEnemyProjectile(float x, float z, float dx, float dz)
 {
     float len = std::sqrt(dx*dx + dz*dz);
@@ -42,6 +52,13 @@ static void spawnEnemyProjectile(float x, float z, float dx, float dz)
     gameLevel().projectiles.push_back(p);
 }
 
+/**
+ * Função Core que itera em 'delta time' todas as variáveis físicas das listas dinâmicas de 
+ * inimigos (Npcs), Itens espalhados pelo chão e os Projéteis voando pelo ar.
+ * Aplica lógica de IA: (Idle -> Chase -> Attack) para os Monstros;
+ * Física de Coleta circular para os itens: cura vida, municão, cartões;
+ * Movimenta os feixes de projétil ou destrói quando encontram paredes ou acertam o jogador.
+ */
 void updateEntities(float dt)
 {
     auto& g = gameContext();
