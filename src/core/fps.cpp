@@ -2,6 +2,11 @@
 #include <GL/glut.h>
 #include <cstdio>
 
+/**
+ * Contador e Limitador de Frames por Segundo (FPS).
+ * Essa rotina conta quantas vezes o OpenGL desenha um frame em 1000 milissegundos 
+ * e estampa o valor no topo nativo da Janela do Sistema Operacional.
+ */
 void fpsTickAndUpdateTitle(const char *baseTitle)
 {
     static int fps = 0;

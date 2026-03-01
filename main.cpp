@@ -6,6 +6,12 @@
 #include "core/window.h"
 #include "core/game.h"
 
+/**
+ * O Coração do Projeto.
+ * Ponto de entrada (Entry Point) que inicializa a janela do GLUT (FreeGLUT), 
+ * o carregador de extensões glewInit (para texturas avançadas e shaders) e engatilha 
+ * o carregamento do mapa 1 via appInit() para dar boot ao jogo. 
+ */
 int main(int argc, char** argv)
 {
     glutInit(&argc, argv);

@@ -48,6 +48,11 @@ static bool pointIntersectsTile(float px, float pz, int tx, int tz, const LevelM
     return (dx * dx + dz * dz) < (radius * radius);
 }
 
+/**
+ * Verifica colisões entre a caixa limite (bounding box) do Jogador contra as bordas dos 
+ * blocos do mapa carregado. Se o próximo passo do jogador for colidir fisicamente com 
+ * a parede tridimensional informada pelo '.txt', a função retorna falso e cancela o movimento.
+ */
 static bool canMoveTo(float nx, float nz)
 {
     if (gameLevel().map.getHeight() == 0)
@@ -79,6 +84,12 @@ static bool canMoveTo(float nx, float nz)
     return true;
 }
 
+/**
+ * Sistema principal de Movimentação FPS e Física do Teclado (WASD + Strafe).
+ * Ele capta onde o Yaw da câmera aponta, computa os vetores diretores X e Z da caminhada 
+ * e multiplica os fatores pela config `PLAYER_STEPS` ou modificadores (Ex: PowerUp Haste).
+ * Desliza o personagem horizontalmente contra as paredes ao invez de travá-lo grosseiramente.
+ */
 void atualizaMovimento()
 {
     float passo = GameConfig::PLAYER_STEPS;
@@ -137,6 +148,12 @@ void atualizaMovimento()
         camZ = nz;
 }
 
+/**
+ * Sistema de Câmera Livre com o Mouse. (Mouse Look / Mouselook)
+ * Lê de forma passiva a variação (Delta X e Delta Y) entre o centro absoluto da janela
+ * e onde o ponteiro físico do mouse tentou ir. Acumula os graus em `yaw` e `pitch`, 
+ * e teletransporta (Warp) o ponteiro invisível de volta pro meio da tela.
+ */
 void mouseMotion(int x, int y)
 {
     if (gameGetState() != GameState::JOGANDO)
