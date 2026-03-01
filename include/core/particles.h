@@ -7,8 +7,7 @@
  */
 
 enum class ParticleType {
-    BLOOD, // Escorre vermelho
-    SPARK  // Sobe como fumaça/faísca cinza
+    BLOOD // Escorre vermelho
 };
 
 struct Particle {

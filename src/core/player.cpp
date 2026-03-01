@@ -131,35 +131,8 @@ void playerTryAttack()
         }
     }
 
-    // 2.5) Verifica se o tiro bateu em uma parede ANTES do inimigo
-    float wallT = MAX_RANGE;
-    float step = 0.5f; // ray-marching simples verificando a matrix da fase
-    for (float d = 0.0f; d < bestT; d += step) {
-        float cxTest = camX + dirX * d;
-        float czTest = camZ + dirZ * d;
-        // Pega tile index
-        int tx = (int)std::round(cxTest / lvl.metrics.tile);
-        int tz = (int)std::round(czTest / lvl.metrics.tile);
-        
-        if (tz >= 0 && tz < lvl.map.getHeight() && tx >= 0 && tx < (int)lvl.map.data()[tz].size()) {
-            char tc = lvl.map.data()[tz][tx];
-            if (tc == '1' || tc == '2' || tc == 'M' || tc == 'S' || tc == 'H' || tc == 'O') {
-                wallT = d;
-                break;
-            }
-        }
-    }
-
-    // 3) se bateu na parede antes do bicho, solta faisca
-    if (wallT < bestT)
-    {
-        float hitX = camX + dirX * wallT;
-        float hitZ = camZ + dirZ * wallT;
-        // Espalha a poeira na parede, um pouco abaixo da camY
-        spawnParticles(15, hitX, camY - 0.2f, hitZ, ParticleType::SPARK);
-    }
-    // se acertou alguém (e nenhuma parede na frente), aplica dano; se não, não faz nada
-    else if (bestIdx >= 0)
+    // 3) se acertou alguém, aplica dano; se não, não faz nada
+    if (bestIdx >= 0)
     {
         auto &en = lvl.enemies[bestIdx];
 

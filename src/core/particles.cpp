@@ -35,8 +35,6 @@ void spawnParticles(int count, float x, float y, float z, ParticleType type) {
             p.z = z;
             
             p.life = randF(0.4f, 0.8f);
-            if (type == ParticleType::SPARK) p.life = randF(0.2f, 0.5f);
-            
             p.maxLife = p.life;
             p.size = randF(0.02f, 0.05f); // Particulas miúdas
 
@@ -47,19 +45,12 @@ void spawnParticles(int count, float x, float y, float z, ParticleType type) {
             p.vx = std::cos(angle) * speedXZ;
             p.vz = std::sin(angle) * speedXZ;
             
-            if (type == ParticleType::BLOOD) {
-                // Sangue "espirra" mais reto pros lados e cai com o peso
-                p.vy = randF(0.0f, 1.5f); 
-                p.r = randF(0.6f, 1.0f); // Tons vermelhos
-                p.g = 0.0f;
-                p.b = 0.0f;
-            } else { // SPARK
-                // Fumaça/Faísca pipoca pra cima e flutua
-                p.vy = randF(1.0f, 4.0f);
-                float gray = randF(0.5f, 0.8f);
-                p.r = gray; p.g = gray; p.b = gray; // Cinza
-                p.size *= 1.5f; // Fumaça um tiquinho maior
-            }
+            // Sangue "espirra" mais reto pros lados e cai com o peso
+            p.vy = randF(0.0f, 1.5f); 
+            p.r = randF(0.6f, 1.0f); // Tons vermelhos
+            p.g = 0.0f;
+            p.b = 0.0f;
+
             p.a = 1.0f;
             
             spawned++;
@@ -82,21 +73,14 @@ void updateParticles(float dt) {
         p.z += p.vz * dt;
         p.y += p.vy * dt;
 
-        if (p.type == ParticleType::BLOOD) {
-            // Gravidade densa puxando sangue pro chão
-            p.vy -= 9.8f * dt;
-            // Para no chão (+- eps_y)
-            if (p.y < 0.01f) {
-                p.y = 0.01f;
-                p.vy = 0.0f;
-                p.vx = 0.0f;
-                p.vz = 0.0f;
-            }
-        } else {
-            // Desaceleração da partícula de impacto
-            p.vx *= 0.95f;
-            p.vz *= 0.95f;
-            p.vy *= 0.9f;
+        // Gravidade densa puxando sangue pro chão
+        p.vy -= 9.8f * dt;
+        // Para no chão (+- eps_y)
+        if (p.y < 0.01f) {
+            p.y = 0.01f;
+            p.vy = 0.0f;
+            p.vx = 0.0f;
+            p.vz = 0.0f;
         }
 
         // Fade out
