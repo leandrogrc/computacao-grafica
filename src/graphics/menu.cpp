@@ -244,9 +244,9 @@ void storyNarrativeRender(int screenW, int screenH, float tempo, GLuint bgTex)
         "Um nevoeiro abissal engoliu a cidade,",
         "trazendo horrores das profundezas.",
         "",
-        "Voce e o ultimo soldado tatico sobrevivente.",
-        "Sua ultima missao: descer ao labirinto e",
-        "exterminar a origem desse Pesadelo."
+        "Voce e o ultimo sobrevivente do esquadrao.",
+        "Colete 3 Cartoes de Acesso em cada setor para avancar.",
+        "Alcance as profundezas e extermine o Boss final."
     };
 
     float scale = 0.25f;
