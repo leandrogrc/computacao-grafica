@@ -2,11 +2,6 @@
 
 Um projeto desenvolvido utilizando **OpenGL** (pipeline fixo + GLSL 1.20) construído em C++, demonstrando a aplicação de técnicas complexas de rasterização 3D, culling, física simples, processamento de áudio 3D e Shaders num formato de jogo de tiro "Doom-Like" de Sobrevivência e Terror.
 
-## 🎥 Demonstração de Gameplay
-> *Aqui você pode colar o link do YouTube / GIF da sua versão final do projeto!*
-
----
-
 ## 💻 Dependências de Instalação (Linux)
 
 Para conseguir compilar e abrir **Abyssal Protocol**, seu SO Debian/Ubuntu precisará ter:
@@ -48,7 +43,6 @@ A navegação ocorre com teclado num paradigma tradicional FPS de primeira pesso
 | **Mouse / Touchpad** | Girar Direção da Cabeça (Yaw / Pitch) |
 | **Clique Esquerdo** | Atirar com a Arma Primária Equipada |
 | **R** | Recarregar munição da arma atual |
-| **G** | Coletar armas poderosas espalhadas no chão |
 | **1, 2** | Trocar de armamento (Escopeta / Rifle Plasma) |
 | **ALT + Enter** | Alterna Dinamicamente entre Janela de Dev e Tela Cheia! |
 | **P** | Abre o Menu de Pausa para respiro |
