@@ -97,15 +97,25 @@ bool gameLoadLevel(int levelNum)
     audioInit(gAudioSys, gLevel, levelNum);
 
     // Reseta munição e arma mas mantém vida
-    g.player.currentAmmo = MAX_MAGAZINE;
-    g.player.reserveAmmo = 25;
+    // Reseta munição apenas no primeiro nível
+    if (levelNum == 1) {
+        g.player.currentAmmo = MAX_MAGAZINE;
+        g.player.reserveAmmo = 25;
+        g.hasWeapon[0] = true;
+        g.hasWeapon[1] = false;
+        g.activeWeaponIdx = 0;
+    }
+
     g.player.cardsCollected = 0; // Novo: Reseta objetivo
     g.player.enemiesDefeated = 0;
     g.player.berserkTimer = 0.0f;
     g.player.hasteTimer = 0.0f;
     gLevel.projectiles.clear();
     initParticles();
+    
+    // Reseta a animação da arma atual para evitar bugs visuais na troca de mapa
     for (int i=0; i<2; ++i) g.weapons[i] = WeaponAnim{};
+    
     g.time = 0.0f;
 
     g.state = GameState::JOGANDO;
@@ -322,7 +332,7 @@ void gameUpdate(float dt)
                 break;
             }
         }
-        if (bossDead)
+        if (bossDead && g.player.cardsCollected >= 3)
         {
             g.state = GameState::VITORIA;
         }
